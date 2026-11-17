@@ -3,367 +3,162 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>LookMatch — твой стиль и твоя пара</title>
+<title>LookMatch — найди свою пару по стилю</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-  /* ===== БАЗА ===== */
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #faf7f2;
-    --bg-2: #ffffff;
-    --text: #1a1a1a;
-    --muted: #6b6b6b;
-    --accent: #ff7b6b;
-    --accent-2: #ffa94d;
-    --card: #ffffff;
-    --border: #e8e3dc;
-    --shadow: 0 10px 40px rgba(0,0,0,.06);
-    --radius: 22px;
-    --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --bg: #faf7f2; --bg-2: #ffffff; --text: #1a1a1a; --muted: #6b6b6b;
+    --accent: #ff7b6b; --accent-2: #ffa94d; --card: #ffffff;
+    --border: #e8e3dc; --shadow: 0 10px 40px rgba(0,0,0,.06);
+    --radius: 22px; --font: 'Inter', -apple-system, sans-serif;
+    --success: #4ade80; --danger: #ef4444;
   }
   [data-theme="dark"] {
-    --bg: #0f0d10;
-    --bg-2: #1a171c;
-    --text: #f5f0ea;
-    --muted: #9a9499;
-    --accent: #ff7b6b;
-    --accent-2: #ffa94d;
-    --card: #1e1b20;
-    --border: #2a262c;
-    --shadow: 0 10px 40px rgba(0,0,0,.4);
+    --bg: #0f0d10; --bg-2: #1a171c; --text: #f5f0ea; --muted: #9a9499;
+    --card: #1e1b20; --border: #2a262c; --shadow: 0 10px 40px rgba(0,0,0,.4);
   }
   [data-theme="y2k"] {
-    --bg: #ffd6ec;
-    --bg-2: #ffe8f5;
-    --text: #4a0e4e;
-    --muted: #a04a8f;
-    --accent: #ff2e9a;
-    --accent-2: #a020f0;
-    --card: #fff0fa;
-    --border: #ffb3dc;
-    --shadow: 0 10px 40px rgba(255,46,154,.2);
+    --bg: #ffd6ec; --bg-2: #ffe8f5; --text: #4a0e4e; --muted: #a04a8f;
+    --accent: #ff2e9a; --accent-2: #a020f0; --card: #fff0fa;
+    --border: #ffb3dc; --shadow: 0 10px 40px rgba(255,46,154,.2);
     --font: 'Comic Sans MS', 'Inter', sans-serif;
   }
   body {
-    font-family: var(--font);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    transition: background .4s, color .4s;
-    overflow-x: hidden;
+    font-family: var(--font); background: var(--bg); color: var(--text);
+    min-height: 100vh; transition: background .4s, color .4s; overflow-x: hidden;
   }
   [data-theme="y2k"] body::before {
-    content: '★ ♡ ✦';
-    position: fixed;
-    top: 20px; left: 20px;
-    color: var(--accent);
-    font-size: 24px;
-    letter-spacing: 8px;
-    opacity: .4;
-    pointer-events: none;
+    content: '★ ♡ ✦'; position: fixed; top: 20px; left: 20px;
+    color: var(--accent); font-size: 24px; letter-spacing: 8px;
+    opacity: .4; pointer-events: none; z-index: 1;
   }
-  .wrap {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 24px 20px 80px;
-  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 24px 20px 80px; }
 
-  /* ===== HEADER ===== */
-  .topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 32px;
-  }
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 800;
-    font-size: 20px;
-    letter-spacing: -.5px;
-  }
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; }
   .logo-ico {
-    width: 36px; height: 36px;
-    border-radius: 10px;
+    width: 36px; height: 36px; border-radius: 10px;
     background: linear-gradient(135deg, var(--accent-2), var(--accent));
-    display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 18px;
+    display: flex; align-items: center; justify-content: center; color: white; font-size: 18px;
   }
-  .sound-btn {
-    background: var(--card);
-    border: 1px solid var(--border);
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 18px;
-    transition: transform .2s;
+  .top-actions { display: flex; gap: 8px; }
+  .icon-btn {
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--card); cursor: pointer; font-size: 18px; transition: transform .2s;
+    color: var(--text);
   }
-  .sound-btn:hover { transform: scale(1.1); }
+  .icon-btn:hover { transform: scale(1.1); }
 
-  /* ===== HERO ===== */
-  .hero {
-    text-align: center;
-    padding: 40px 0 30px;
-  }
+  .hero { text-align: center; padding: 40px 0 30px; }
   .hero h1 {
-    font-size: 42px;
-    line-height: 1.05;
-    letter-spacing: -1.5px;
-    margin-bottom: 14px;
+    font-size: 42px; line-height: 1.05; letter-spacing: -1.5px; margin-bottom: 14px;
     background: linear-gradient(135deg, var(--accent-2), var(--accent));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
   }
-  [data-theme="y2k"] .hero h1 {
-    background: linear-gradient(135deg, #ff2e9a, #a020f0, #00d4ff);
-    -webkit-background-clip: text;
-    background-clip: text;
-  }
-  .hero p {
-    color: var(--muted);
-    font-size: 16px;
-    max-width: 460px;
-    margin: 0 auto;
-  }
+  [data-theme="y2k"] .hero h1 { background: linear-gradient(135deg, #ff2e9a, #a020f0, #00d4ff); -webkit-background-clip: text; background-clip: text; }
+  .hero p { color: var(--muted); font-size: 16px; max-width: 460px; margin: 0 auto; }
 
-  /* ===== CARDS ===== */
   .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px;
-    margin-bottom: 16px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px; margin-bottom: 16px;
     box-shadow: var(--shadow);
   }
-  .card h3 {
-    font-size: 18px;
-    margin-bottom: 14px;
-    letter-spacing: -.3px;
-  }
-  .card .hint {
-    font-size: 13px;
-    color: var(--muted);
-    margin-bottom: 14px;
-  }
+  .card h3 { font-size: 18px; margin-bottom: 14px; letter-spacing: -.3px; }
+  .hint { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
 
-  /* ===== BUTTONS ===== */
   .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 14px 22px;
-    border-radius: 14px;
-    border: none;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform .15s, box-shadow .15s;
-    font-family: inherit;
-    width: 100%;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 14px 22px; border-radius: 14px; border: none;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: transform .15s, box-shadow .15s; font-family: inherit; width: 100%;
   }
   .btn:hover { transform: translateY(-2px); }
-  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
   .btn-primary {
     background: linear-gradient(135deg, var(--accent-2), var(--accent));
-    color: white;
-    box-shadow: 0 6px 20px rgba(255,123,107,.35);
+    color: white; box-shadow: 0 6px 20px rgba(255,123,107,.35);
   }
-  .btn-secondary {
-    background: var(--bg-2);
-    color: var(--text);
-    border: 1px solid var(--border);
-  }
-  .btn-ghost {
-    background: transparent;
-    color: var(--muted);
-    border: 1px dashed var(--border);
-  }
-  .btn-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .btn-row-3 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 10px;
-  }
+  .btn-secondary { background: var(--bg-2); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px dashed var(--border); }
+  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 
-  /* ===== GENDER ===== */
-  .gender-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 12px;
-  }
+  .gender-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
   .gender-btn {
-    padding: 16px;
-    border-radius: 14px;
-    border: 2px solid var(--border);
-    background: var(--card);
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 15px;
-    transition: all .2s;
-    font-family: inherit;
-    color: var(--text);
+    padding: 16px; border-radius: 14px; border: 2px solid var(--border);
+    background: var(--card); cursor: pointer; font-weight: 600; font-size: 15px;
+    transition: all .2s; font-family: inherit; color: var(--text);
   }
   .gender-btn.active {
     border-color: var(--accent);
     background: linear-gradient(135deg, rgba(255,169,77,.12), rgba(255,123,107,.12));
   }
 
-  /* ===== UPLOAD ===== */
   .upload-zone {
-    border: 2px dashed var(--border);
-    border-radius: 18px;
-    padding: 40px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all .2s;
-    background: var(--bg-2);
-    position: relative;
-    overflow: hidden;
+    border: 2px dashed var(--border); border-radius: 18px;
+    padding: 40px 20px; text-align: center; cursor: pointer;
+    transition: all .2s; background: var(--bg-2); position: relative; overflow: hidden;
   }
-  .upload-zone:hover {
-    border-color: var(--accent);
-    background: linear-gradient(135deg, rgba(255,169,77,.05), rgba(255,123,107,.05));
-  }
+  .upload-zone:hover { border-color: var(--accent); background: linear-gradient(135deg, rgba(255,169,77,.05), rgba(255,123,107,.05)); }
   .upload-zone .emoji { font-size: 42px; margin-bottom: 10px; }
   .upload-zone p { color: var(--muted); font-size: 14px; }
-  .upload-zone img {
-    max-width: 100%;
-    max-height: 300px;
-    border-radius: 14px;
-    display: block;
-    margin: 0 auto;
-  }
+  .upload-zone img { max-width: 100%; max-height: 300px; border-radius: 14px; display: block; margin: 0 auto; }
   .upload-zone.scanning::after {
-    content: '';
-    position: absolute;
-    inset: 0;
+    content: ''; position: absolute; inset: 0;
     background: linear-gradient(180deg, transparent 0%, rgba(255,123,107,.15) 50%, transparent 100%);
-    animation: scan 2s linear infinite;
-    pointer-events: none;
+    animation: scan 2s linear infinite; pointer-events: none;
   }
-  @keyframes scan {
-    0% { transform: translateY(-100%); }
-    100% { transform: translateY(100%); }
-  }
+  @keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
   .scan-tags {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 20px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity .3s;
+    position: absolute; inset: 0; display: flex; flex-wrap: wrap;
+    align-items: center; justify-content: center; gap: 8px;
+    padding: 20px; pointer-events: none; opacity: 0; transition: opacity .3s;
   }
   .upload-zone.scanning .scan-tags { opacity: 1; }
   .scan-tag {
-    background: rgba(0,0,0,.7);
-    color: white;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    animation: pop .4s ease-out;
-    backdrop-filter: blur(4px);
+    background: rgba(0,0,0,.7); color: white; padding: 6px 12px;
+    border-radius: 20px; font-size: 12px; font-weight: 600;
+    animation: pop .4s ease-out; backdrop-filter: blur(4px);
   }
-  @keyframes pop {
-    0% { transform: scale(0); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
-  }
+  @keyframes pop { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
   .face-blur-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 12px;
-    padding: 12px 16px;
-    background: var(--bg-2);
-    border-radius: 12px;
-    font-size: 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 12px; padding: 12px 16px; background: var(--bg-2);
+    border-radius: 12px; font-size: 14px;
   }
-  .face-blur-toggle img { filter: blur(12px); }
   .switch {
-    position: relative;
-    width: 44px; height: 24px;
-    background: var(--border);
-    border-radius: 12px;
-    cursor: pointer;
-    transition: background .2s;
+    position: relative; width: 44px; height: 24px;
+    background: var(--border); border-radius: 12px; cursor: pointer; transition: background .2s;
   }
   .switch.on { background: var(--accent); }
   .switch::after {
-    content: '';
-    position: absolute;
-    top: 2px; left: 2px;
-    width: 20px; height: 20px;
-    background: white;
-    border-radius: 50%;
-    transition: transform .2s;
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 20px; height: 20px; background: white; border-radius: 50%; transition: transform .2s;
   }
   .switch.on::after { transform: translateX(20px); }
 
-  /* ===== STYLES / HOBBIES ===== */
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .chip {
-    padding: 10px 16px;
-    border-radius: 20px;
-    border: 1.5px solid var(--border);
-    background: var(--card);
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all .15s;
-    user-select: none;
-    font-family: inherit;
-    color: var(--text);
+    padding: 10px 16px; border-radius: 20px; border: 1.5px solid var(--border);
+    background: var(--card); cursor: pointer; font-size: 14px; font-weight: 500;
+    transition: all .15s; user-select: none; font-family: inherit; color: var(--text);
   }
   .chip:hover { transform: translateY(-1px); }
   .chip.active {
     background: linear-gradient(135deg, var(--accent-2), var(--accent));
-    color: white;
-    border-color: transparent;
-    box-shadow: 0 4px 12px rgba(255,123,107,.3);
+    color: white; border-color: transparent; box-shadow: 0 4px 12px rgba(255,123,107,.3);
   }
-  .chip-emoji {
-    font-size: 22px;
-    padding: 12px 14px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 52px;
-  }
+  .chip-emoji { font-size: 22px; padding: 12px 14px; display: inline-flex; align-items: center; justify-content: center; min-width: 52px; }
   .chip-emoji .label { display: none; }
   .chip-emoji.active .label { display: inline; margin-left: 6px; font-size: 13px; }
 
-  /* ===== SCENARIOS ===== */
-  .scenario-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-  }
+  .scenario-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .scenario {
-    padding: 16px 8px;
-    border-radius: 14px;
-    border: 1.5px solid var(--border);
-    background: var(--card);
-    cursor: pointer;
-    text-align: center;
-    transition: all .2s;
-    font-family: inherit;
-    color: var(--text);
+    padding: 16px 8px; border-radius: 14px; border: 1.5px solid var(--border);
+    background: var(--card); cursor: pointer; text-align: center;
+    transition: all .2s; font-family: inherit; color: var(--text);
   }
   .scenario:hover { transform: translateY(-2px); }
   .scenario.active {
@@ -373,295 +168,132 @@
   .scenario .emoji { font-size: 26px; display: block; margin-bottom: 4px; }
   .scenario .label { font-size: 12px; font-weight: 600; }
 
-  /* ===== SCREENS ===== */
   .screen { display: none; animation: fadeIn .4s; }
   .screen.active { display: block; }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* ===== QUIZ ===== */
-  .quiz-q {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 16px;
-    letter-spacing: -.3px;
-  }
-  .quiz-opts {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
+  .quiz-q { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+  .quiz-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .quiz-opt {
-    padding: 14px;
-    border-radius: 14px;
-    border: 1.5px solid var(--border);
-    background: var(--card);
-    cursor: pointer;
-    font-size: 14px;
-    text-align: center;
-    transition: all .15s;
-    font-family: inherit;
-    color: var(--text);
+    padding: 14px; border-radius: 14px; border: 1.5px solid var(--border);
+    background: var(--card); cursor: pointer; font-size: 14px; text-align: center;
+    transition: all .15s; font-family: inherit; color: var(--text);
   }
   .quiz-opt:hover { border-color: var(--accent); }
   .quiz-opt.active {
     background: linear-gradient(135deg, var(--accent-2), var(--accent));
-    color: white;
-    border-color: transparent;
+    color: white; border-color: transparent;
   }
-  .quiz-progress {
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    margin-bottom: 16px;
-    overflow: hidden;
-  }
-  .quiz-progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent-2), var(--accent));
-    transition: width .3s;
-  }
+  .quiz-progress { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 16px; overflow: hidden; }
+  .quiz-progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent-2), var(--accent)); transition: width .3s; }
 
-  /* ===== SWIPE ===== */
-  .swipe-stack {
-    position: relative;
-    height: 340px;
-    margin: 16px 0;
-  }
+  .swipe-stack { position: relative; height: 340px; margin: 16px 0; }
   .swipe-card {
-    position: absolute;
-    inset: 0;
-    border-radius: 18px;
+    position: absolute; inset: 0; border-radius: 18px;
     background: linear-gradient(135deg, var(--accent-2), var(--accent));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 64px;
-    color: white;
-    cursor: grab;
-    transition: transform .3s, opacity .3s;
-    box-shadow: var(--shadow);
-    user-select: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 64px; color: white; cursor: grab;
+    transition: transform .3s, opacity .3s; box-shadow: var(--shadow); user-select: none;
   }
   .swipe-card:active { cursor: grabbing; }
   .swipe-label {
-    position: absolute;
-    top: 20px;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-weight: 700;
-    font-size: 14px;
-    opacity: 0;
-    transition: opacity .15s;
-    pointer-events: none;
+    position: absolute; top: 20px; padding: 8px 16px; border-radius: 20px;
+    font-weight: 700; font-size: 14px; opacity: 0; transition: opacity .15s; pointer-events: none;
   }
-  .swipe-label.like { right: 20px; background: #4ade80; color: white; }
-  .swipe-label.nope { left: 20px; background: #ef4444; color: white; }
+  .swipe-label.like { right: 20px; background: var(--success); color: white; }
+  .swipe-label.nope { left: 20px; background: var(--danger); color: white; }
 
-  /* ===== RESULTS ===== */
   .result-hero {
-    text-align: center;
-    padding: 30px 20px;
+    text-align: center; padding: 30px 20px;
     background: linear-gradient(135deg, rgba(255,169,77,.12), rgba(255,123,107,.12));
-    border-radius: var(--radius);
-    margin-bottom: 16px;
-    position: relative;
-    overflow: hidden;
+    border-radius: var(--radius); margin-bottom: 16px; position: relative; overflow: hidden;
   }
   .result-hero .label {
-    font-size: 13px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
+    font-size: 13px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 8px;
   }
   .result-hero .style-name {
-    font-size: 32px;
-    font-weight: 800;
-    letter-spacing: -1px;
+    font-size: 32px; font-weight: 800; letter-spacing: -1px;
     background: linear-gradient(135deg, var(--accent-2), var(--accent));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .result-hero .style-desc {
+    font-size: 14px; color: var(--muted); margin-top: 10px; font-style: italic;
   }
   .match-pair {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 16px;
-    background: var(--bg-2);
-    border-radius: 14px;
-    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px; background: var(--bg-2); border-radius: 14px; margin-bottom: 12px;
   }
   .match-avatar {
-    width: 56px; height: 56px;
-    border-radius: 50%;
+    width: 56px; height: 56px; border-radius: 50%;
     background: linear-gradient(135deg, var(--accent-2), var(--accent));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; flex-shrink: 0;
   }
   .match-info { flex: 1; }
   .match-info .name { font-weight: 700; font-size: 15px; }
   .match-info .desc { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .match-info .pct { font-size: 13px; font-weight: 700; color: var(--accent); margin-top: 4px; }
 
   .anti-match {
     background: linear-gradient(135deg, #2a262c, #1a171c);
-    color: white;
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 16px;
-    position: relative;
-    overflow: hidden;
+    color: white; border-radius: var(--radius); padding: 20px; margin-bottom: 16px;
   }
   [data-theme="dark"] .anti-match { background: linear-gradient(135deg, #2a262c, #0f0d10); }
-  .anti-match .label {
-    font-size: 12px;
-    opacity: .7;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 6px;
-  }
-  .anti-match .name {
-    font-size: 22px;
-    font-weight: 800;
-    margin-bottom: 6px;
-  }
+  .anti-match .label { font-size: 12px; opacity: .7; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .anti-match .name { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
   .anti-match .desc { font-size: 13px; opacity: .8; }
 
-  .capsule {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-top: 12px;
-  }
+  .capsule { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
   .capsule-item {
-    padding: 16px 8px;
-    background: var(--bg-2);
-    border-radius: 14px;
-    text-align: center;
-    font-size: 13px;
+    padding: 16px 8px; background: var(--bg-2); border-radius: 14px;
+    text-align: center; font-size: 13px;
   }
   .capsule-item .emoji { font-size: 28px; display: block; margin-bottom: 6px; }
 
-  .reason-list {
-    list-style: none;
-    margin-top: 10px;
-  }
+  .reason-list { list-style: none; margin-top: 10px; }
   .reason-list li {
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 14px;
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+    font-size: 14px; display: flex; gap: 10px; align-items: flex-start;
   }
   .reason-list li:last-child { border-bottom: none; }
   .reason-list .bullet {
-    flex-shrink: 0;
-    width: 22px; height: 22px;
+    flex-shrink: 0; width: 22px; height: 22px;
     background: linear-gradient(135deg, var(--accent-2), var(--accent));
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 12px;
-    font-weight: 700;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 12px; font-weight: 700;
   }
 
-  .radar-wrap {
-    display: flex;
-    justify-content: center;
-    margin: 16px 0;
-  }
-  canvas#radar {
-    max-width: 100%;
-    height: auto;
-  }
+  .radar-wrap { display: flex; justify-content: center; margin: 16px 0; }
+  canvas { max-width: 100%; height: auto; }
 
-  /* ===== DUAL MODE ===== */
-  .dual-compare {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin: 14px 0;
-  }
-  .dual-side {
-    padding: 16px;
-    background: var(--bg-2);
-    border-radius: 14px;
-    text-align: center;
-  }
-  .dual-side .who {
-    font-size: 12px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 6px;
-  }
-  .dual-side .style {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 4px;
-  }
+  .dual-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
+  .dual-side { padding: 16px; background: var(--bg-2); border-radius: 14px; text-align: center; }
+  .dual-side .who { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .dual-side .style { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
   .dual-side .pct {
-    font-size: 28px;
-    font-weight: 800;
+    font-size: 28px; font-weight: 800;
     background: linear-gradient(135deg, var(--accent-2), var(--accent));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
   }
   .verdict {
-    padding: 16px;
-    background: linear-gradient(135deg, rgba(255,169,77,.12), rgba(255,123,107,.12));
-    border-radius: 14px;
-    text-align: center;
-    font-size: 15px;
-    font-weight: 600;
-    margin-top: 12px;
+    padding: 16px; background: linear-gradient(135deg, rgba(255,169,77,.12), rgba(255,123,107,.12));
+    border-radius: 14px; text-align: center; font-size: 15px; font-weight: 600; margin-top: 12px;
   }
 
-  /* ===== SHARE ===== */
-  .share-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-top: 12px;
-  }
+  .share-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
   .share-btn {
-    padding: 12px 8px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: var(--card);
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-    transition: all .15s;
-    font-family: inherit;
-    color: var(--text);
+    padding: 12px 8px; border-radius: 12px; border: 1px solid var(--border);
+    background: var(--card); cursor: pointer; font-size: 12px; font-weight: 600;
+    transition: all .15s; font-family: inherit; color: var(--text);
   }
   .share-btn:hover { transform: translateY(-2px); border-color: var(--accent); }
   .share-btn .emoji { display: block; font-size: 22px; margin-bottom: 4px; }
 
-  /* ===== THEMES ===== */
-  .theme-row {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    margin-top: 20px;
-  }
+  .theme-row { display: flex; gap: 8px; justify-content: center; margin-top: 20px; }
   .theme-dot {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid var(--border);
-    transition: transform .2s;
+    width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+    border: 2px solid var(--border); transition: transform .2s;
   }
   .theme-dot:hover { transform: scale(1.15); }
   .theme-dot.active { border-color: var(--text); transform: scale(1.15); }
@@ -669,64 +301,148 @@
   .theme-dot[data-t="dark"] { background: linear-gradient(135deg, #0f0d10, #ff7b6b); }
   .theme-dot[data-t="y2k"] { background: linear-gradient(135deg, #ffd6ec, #ff2e9a); }
 
-  /* ===== FOOTER ===== */
-  .footer {
-    text-align: center;
-    color: var(--muted);
-    font-size: 12px;
-    margin-top: 30px;
-    padding: 20px;
-    line-height: 1.5;
-  }
+  .footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 30px; padding: 20px; line-height: 1.5; }
 
-  /* ===== SHREDDER ===== */
   .shredder-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.7);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    backdrop-filter: blur(6px);
+    position: fixed; inset: 0; background: rgba(0,0,0,.7);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; backdrop-filter: blur(6px);
   }
   .shredder-overlay.show { display: flex; }
   .shredder-box {
-    background: var(--card);
-    border-radius: var(--radius);
-    padding: 30px;
-    text-align: center;
-    max-width: 340px;
+    background: var(--card); border-radius: var(--radius);
+    padding: 30px; text-align: center; max-width: 340px;
   }
   .shredder-box .emoji { font-size: 52px; margin-bottom: 12px; }
   .shredder-box h3 { margin-bottom: 8px; }
   .shredder-box p { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
 
-  /* ===== TOAST ===== */
   .toast {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
+    position: fixed; bottom: 30px; left: 50%;
     transform: translateX(-50%) translateY(100px);
-    background: var(--text);
-    color: var(--bg);
-    padding: 12px 22px;
-    border-radius: 30px;
-    font-size: 14px;
-    font-weight: 600;
-    transition: transform .3s;
-    z-index: 200;
-    box-shadow: 0 10px 30px rgba(0,0,0,.3);
+    background: var(--text); color: var(--bg);
+    padding: 12px 22px; border-radius: 30px; font-size: 14px; font-weight: 600;
+    transition: transform .3s; z-index: 200; box-shadow: 0 10px 30px rgba(0,0,0,.3);
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
 
-  /* ===== RESPONSIVE ===== */
+  /* ===== BATTLE MODE ===== */
+  .battle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
+  .battle-slot {
+    aspect-ratio: 3/4; border-radius: 16px; border: 2px dashed var(--border);
+    background: var(--bg-2); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative; overflow: hidden; transition: all .2s;
+  }
+  .battle-slot:hover { border-color: var(--accent); }
+  .battle-slot img { width: 100%; height: 100%; object-fit: cover; }
+  .battle-slot .placeholder { text-align: center; color: var(--muted); font-size: 13px; padding: 10px; }
+  .battle-slot .placeholder .emoji { font-size: 32px; display: block; margin-bottom: 6px; }
+  .battle-slot.winner { border-color: var(--success); border-style: solid; box-shadow: 0 0 0 3px rgba(74,222,128,.2); }
+  .battle-slot.loser { opacity: .5; filter: grayscale(.6); }
+  .battle-badge {
+    position: absolute; top: 10px; left: 10px;
+    background: var(--success); color: white;
+    padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+  }
+  .battle-comment {
+    padding: 16px; background: var(--bg-2); border-radius: 14px;
+    margin-top: 12px; font-size: 14px; line-height: 1.5;
+  }
+  .battle-comment .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+
+  /* ===== COUPLES OUTFIT ===== */
+  .couples-preview {
+    padding: 20px; border-radius: 16px;
+    background: linear-gradient(135deg, rgba(255,169,77,.1), rgba(255,123,107,.1));
+    margin: 14px 0; text-align: center;
+  }
+  .couples-preview .pair-emoji { font-size: 48px; margin-bottom: 10px; }
+  .couples-preview .pair-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .couples-preview .pair-desc { font-size: 13px; color: var(--muted); }
+  .couples-items { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
+  .couples-item {
+    padding: 14px; background: var(--bg-2); border-radius: 14px; text-align: center;
+  }
+  .couples-item .emoji { font-size: 26px; display: block; margin-bottom: 6px; }
+  .couples-item .name { font-size: 13px; font-weight: 600; }
+  .couples-item .who { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ===== MYSTERY MATCH ===== */
+  .mystery-card {
+    padding: 20px; background: linear-gradient(135deg, #2a262c, #1a171c);
+    color: white; border-radius: 16px; margin-bottom: 12px;
+    position: relative; overflow: hidden;
+  }
+  .mystery-card::before {
+    content: ''; position: absolute; top: -50%; right: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,123,107,.15) 0%, transparent 50%);
+    animation: rotate 20s linear infinite;
+  }
+  @keyframes rotate { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+  .mystery-card .q { font-size: 15px; font-weight: 600; margin-bottom: 12px; position: relative; }
+  .mystery-card .answer {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; background: rgba(255,255,255,.1);
+    border-radius: 12px; font-size: 14px; position: relative;
+  }
+  .mystery-card .answer .emoji { font-size: 22px; }
+
+  /* ===== API KEY INPUT ===== */
+  .api-input {
+    display: flex; gap: 8px; margin-top: 10px;
+  }
+  .api-input input {
+    flex: 1; padding: 10px 14px; border-radius: 12px;
+    border: 1px solid var(--border); background: var(--bg-2);
+    color: var(--text); font-family: inherit; font-size: 13px;
+  }
+  .api-input input:focus { outline: none; border-color: var(--accent); }
+  .api-input button {
+    padding: 10px 16px; border-radius: 12px; border: none;
+    background: var(--accent); color: white; cursor: pointer;
+    font-weight: 600; font-size: 13px; font-family: inherit;
+  }
+  .api-status { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .api-status.ok { color: var(--success); }
+  .api-status.err { color: var(--danger); }
+
+  /* ===== STORY TEMPLATES ===== */
+  .story-templates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+  .story-tpl {
+    aspect-ratio: 9/16; border-radius: 12px; cursor: pointer;
+    border: 2px solid var(--border); transition: all .2s;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: white; text-align: center; padding: 8px;
+  }
+  .story-tpl:hover { transform: scale(1.05); }
+  .story-tpl.active { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,123,107,.3); }
+  .story-tpl[data-tpl="sunset"] { background: linear-gradient(135deg, #ffa94d, #ff7b6b); }
+  .story-tpl[data-tpl="neon"] { background: linear-gradient(135deg, #a020f0, #00d4ff); }
+  .story-tpl[data-tpl="minimal"] { background: linear-gradient(135deg, #2a262c, #1a171c); }
+  .story-tpl[data-tpl="y2k"] { background: linear-gradient(135deg, #ff2e9a, #ffd6ec); color: #4a0e4e; }
+  .story-tpl[data-tpl="forest"] { background: linear-gradient(135deg, #4ade80, #22c55e); }
+  .story-tpl[data-tpl="ocean"] { background: linear-gradient(135deg, #0ea5e9, #6366f1); }
+
+  /* ===== MENU GRID ===== */
+  .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .menu-item {
+    padding: 18px 14px; border-radius: 16px; border: 1.5px solid var(--border);
+    background: var(--card); cursor: pointer; text-align: left;
+    transition: all .2s; font-family: inherit; color: var(--text);
+  }
+  .menu-item:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .menu-item .emoji { font-size: 28px; display: block; margin-bottom: 8px; }
+  .menu-item .title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .menu-item .desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
   @media (max-width: 520px) {
     .hero h1 { font-size: 32px; }
     .scenario-grid { grid-template-columns: repeat(2, 1fr); }
-    .btn-row-3 { grid-template-columns: 1fr; }
-    .share-row { grid-template-columns: 1fr 1fr; }
+    .btn-row-3, .share-row { grid-template-columns: 1fr 1fr; }
     .quiz-opts { grid-template-columns: 1fr; }
+    .battle-grid { grid-template-columns: 1fr; }
+    .story-templates { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
 </head>
@@ -734,22 +450,69 @@
 
 <div class="wrap">
 
-  <!-- HEADER -->
   <div class="topbar">
     <div class="logo">
       <div class="logo-ico">👁</div>
       <span>LookMatch</span>
     </div>
-    <button class="sound-btn" id="soundBtn" title="Звук">🔊</button>
+    <div class="top-actions">
+      <button class="icon-btn" id="soundBtn" title="Звук">🔊</button>
+      <button class="icon-btn" onclick="goTo('start')" title="В начало">🏠</button>
+    </div>
   </div>
 
-  <!-- SCREEN 1: START -->
+  <!-- START SCREEN -->
   <div class="screen active" id="screen-start">
     <div class="hero">
       <h1>Твой стиль +<br>Твоя пара</h1>
       <p>Загрузи лук — найди человека, с которым вы будете выглядеть как пара из Pinterest.</p>
     </div>
 
+    <div class="card">
+      <h3>Выбери режим</h3>
+      <div class="menu-grid">
+        <button class="menu-item" onclick="goTo('classic')">
+          <span class="emoji">💘</span>
+          <div class="title">Классический мэтч</div>
+          <div class="desc">Найди идеальную пару по стилю</div>
+        </button>
+        <button class="menu-item" onclick="goTo('battle-setup')">
+          <span class="emoji">⚔️</span>
+          <div class="title">Битва луков</div>
+          <div class="desc">Какой образ круче?</div>
+        </button>
+        <button class="menu-item" onclick="goTo('couples-setup')">
+          <span class="emoji">💑</span>
+          <div class="title">Парный образ</div>
+          <div class="desc">Как вы смотритесь вместе</div>
+        </button>
+        <button class="menu-item" onclick="goTo('mystery')">
+          <span class="emoji">🎲</span>
+          <div class="title">Секретный вайб</div>
+          <div class="desc">Случайные забавные критерии</div>
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🔑 Gemini API (опционально)</h3>
+      <p class="hint">Вставь ключ для реального ИИ-анализа фото. Без ключа — умная имитация.</p>
+      <div class="api-input">
+        <input type="password" id="apiKey" placeholder="AIza..." />
+        <button onclick="saveApiKey()">Сохранить</button>
+      </div>
+      <div class="api-status" id="apiStatus">Статус: не подключён</div>
+    </div>
+
+    <div class="theme-row">
+      <div class="theme-dot active" data-t="light" onclick="setTheme('light')"></div>
+      <div class="theme-dot" data-t="dark" onclick="setTheme('dark')"></div>
+      <div class="theme-dot" data-t="y2k" onclick="setTheme('y2k')"></div>
+    </div>
+  </div>
+
+  <!-- CLASSIC MODE -->
+  <div class="screen" id="screen-classic">
     <div class="card">
       <h3>Кого ищешь?</h3>
       <div class="gender-row">
@@ -775,9 +538,9 @@
 
     <div class="card">
       <h3>Нет фото? Ответь на вопросы</h3>
-      <button class="btn btn-secondary" onclick="goTo('quiz')">📝 Быстрый тест (8 вопросов)</button>
+      <button class="btn btn-secondary" onclick="startQuiz(8)">📝 Быстрый тест (8 вопросов)</button>
       <div style="height:10px;"></div>
-      <button class="btn btn-ghost" onclick="goTo('quiz-long')">📚 Подробный тест (20 вопросов)</button>
+      <button class="btn btn-ghost" onclick="startQuiz(20)">📚 Подробный тест (20 вопросов)</button>
     </div>
 
     <div class="card">
@@ -789,7 +552,7 @@
     </div>
   </div>
 
-  <!-- SCREEN 2: QUIZ -->
+  <!-- QUIZ -->
   <div class="screen" id="screen-quiz">
     <div class="card">
       <h3>Тест на стиль</h3>
@@ -798,13 +561,13 @@
       <div class="quiz-opts" id="quizOpts"></div>
       <div style="height:14px;"></div>
       <div class="btn-row">
-        <button class="btn btn-ghost" onclick="goTo('start')">← Назад</button>
+        <button class="btn btn-ghost" onclick="goTo('classic')">← Назад</button>
         <button class="btn btn-primary" id="quizNext" disabled>Далее →</button>
       </div>
     </div>
   </div>
 
-  <!-- SCREEN 3: HOBBIES -->
+  <!-- HOBBIES -->
   <div class="screen" id="screen-hobbies">
     <div class="card">
       <h3>Увлечения</h3>
@@ -812,13 +575,13 @@
       <div class="chips" id="hobbyChips"></div>
       <div style="height:14px;"></div>
       <div class="btn-row">
-        <button class="btn btn-ghost" onclick="goTo('start')">Пропустить</button>
+        <button class="btn btn-ghost" onclick="goTo('classic')">Пропустить</button>
         <button class="btn btn-primary" onclick="goTo('scenario')">Далее →</button>
       </div>
     </div>
   </div>
 
-  <!-- SCREEN 4: SCENARIO -->
+  <!-- SCENARIO -->
   <div class="screen" id="screen-scenario">
     <div class="card">
       <h3>Куда идём?</h3>
@@ -832,26 +595,27 @@
     </div>
   </div>
 
-  <!-- SCREEN 5: SWIPE REFINE -->
+  <!-- SWIPE -->
   <div class="screen" id="screen-swipe">
     <div class="card">
       <h3>Уточни свой стиль</h3>
       <p class="hint">Свайпай вправо — нравится, влево — не моё</p>
       <div class="swipe-stack" id="swipeStack"></div>
       <div class="btn-row">
-        <button class="btn btn-ghost" onclick="finishSwipe(true)">← Не моё</button>
-        <button class="btn btn-primary" onclick="finishSwipe(false)">Моё →</button>
+        <button class="btn btn-ghost" onclick="finishSwipe()">← Не моё</button>
+        <button class="btn btn-primary" onclick="finishSwipe(true)">Моё →</button>
       </div>
     </div>
   </div>
 
-  <!-- SCREEN 6: RESULTS -->
+  <!-- RESULTS -->
   <div class="screen" id="screen-result">
     <div class="result-hero">
       <div class="label">Твой стиль</div>
       <div class="style-name" id="resStyle">—</div>
+      <div class="style-desc" id="resStyleDesc"></div>
       <div style="height:10px;"></div>
-      <button class="btn btn-ghost" style="width:auto; display:inline-flex;" onclick="goTo('swipe')">🔄 Это не мой стиль, поправить</button>
+      <button class="btn btn-ghost" style="width:auto; display:inline-flex;" onclick="goTo('swipe')">🔄 Это не мой стиль</button>
     </div>
 
     <div class="card">
@@ -882,7 +646,7 @@
         <canvas id="radar" width="320" height="320"></canvas>
       </div>
       <div style="height:10px;"></div>
-      <button class="btn btn-primary" onclick="downloadStory()">📥 Картинка для сторис</button>
+      <button class="btn btn-primary" onclick="openStoryModal()">📥 Картинка для сторис</button>
     </div>
 
     <div class="card">
@@ -898,15 +662,98 @@
       <h3>📤 Поделиться</h3>
       <div class="share-row">
         <button class="share-btn" onclick="shareTG()"><span class="emoji">✈️</span>Telegram</button>
-        <button class="share-btn" onclick="downloadStory()"><span class="emoji">📸</span>Сторис</button>
+        <button class="share-btn" onclick="openStoryModal()"><span class="emoji">📸</span>Сторис</button>
         <button class="share-btn" onclick="copyLink()"><span class="emoji">🔗</span>Ссылка</button>
       </div>
     </div>
+  </div>
 
-    <div class="theme-row">
-      <div class="theme-dot active" data-t="light" onclick="setTheme('light')"></div>
-      <div class="theme-dot" data-t="dark" onclick="setTheme('dark')"></div>
-      <div class="theme-dot" data-t="y2k" onclick="setTheme('y2k')"></div>
+  <!-- BATTLE SETUP -->
+  <div class="screen" id="screen-battle-setup">
+    <div class="card">
+      <h3>⚔️ Битва луков</h3>
+      <p class="hint">Загрузи два варианта — ИИ выберет, какой круче для выбранного случая</p>
+      <div class="battle-grid">
+        <div class="battle-slot" id="battleSlot1" onclick="uploadBattle(0)">
+          <div class="placeholder"><span class="emoji">👕</span>Вариант 1</div>
+        </div>
+        <div class="battle-slot" id="battleSlot2" onclick="uploadBattle(1)">
+          <div class="placeholder"><span class="emoji">👗</span>Вариант 2</div>
+        </div>
+      </div>
+      <input type="file" id="battleInput" accept="image/*" hidden />
+    </div>
+
+    <div class="card">
+      <h3>Для какого случая?</h3>
+      <div class="scenario-grid" id="battleScenarioGrid"></div>
+    </div>
+
+    <div class="card">
+      <button class="btn btn-primary" onclick="runBattle()">🔥 Запустить битву</button>
+      <div style="height:10px;"></div>
+      <button class="btn btn-ghost" onclick="goTo('start')">← Назад</button>
+    </div>
+  </div>
+
+  <!-- BATTLE RESULT -->
+  <div class="screen" id="screen-battle-result">
+    <div class="card">
+      <h3>⚔️ Результат битвы</h3>
+      <div class="battle-grid" id="battleResultGrid"></div>
+      <div class="battle-comment" id="battleComment"></div>
+      <div style="height:14px;"></div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goTo('battle-setup')">🔄 Ещё битва</button>
+        <button class="btn btn-primary" onclick="shareBattle()">📤 Поделиться</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COUPLES SETUP -->
+  <div class="screen" id="screen-couples-setup">
+    <div class="card">
+      <h3>💑 Парный образ</h3>
+      <p class="hint">Выберите стили двух людей — покажем, как вы смотритесь вместе</p>
+      <div style="margin-bottom:14px;">
+        <div style="font-size:13px; color:var(--muted); margin-bottom:8px;">Стиль человека 1:</div>
+        <div class="chips" id="couplesChips1"></div>
+      </div>
+      <div>
+        <div style="font-size:13px; color:var(--muted); margin-bottom:8px;">Стиль человека 2:</div>
+        <div class="chips" id="couplesChips2"></div>
+      </div>
+      <div style="height:14px;"></div>
+      <button class="btn btn-primary" onclick="calcCouples()">✨ Создать парный образ</button>
+      <div style="height:10px;"></div>
+      <button class="btn btn-ghost" onclick="goTo('start')">← Назад</button>
+    </div>
+  </div>
+
+  <!-- COUPLES RESULT -->
+  <div class="screen" id="screen-couples-result">
+    <div class="card">
+      <h3>💑 Ваш парный образ</h3>
+      <div class="couples-preview" id="couplesPreview"></div>
+      <h3 style="margin-top:20px;">👕 Что надеть</h3>
+      <div class="couples-items" id="couplesItems"></div>
+      <div style="height:14px;"></div>
+      <button class="btn btn-primary" onclick="downloadCouplesCard()">📥 Картинка для пары</button>
+      <div style="height:10px;"></div>
+      <button class="btn btn-ghost" onclick="goTo('couples-setup')">← Назад</button>
+    </div>
+  </div>
+
+  <!-- MYSTERY -->
+  <div class="screen" id="screen-mystery">
+    <div class="card">
+      <h3>🎲 Секретный вайб</h3>
+      <p class="hint">Подбор пары не по стилю, а по случайным забавным критериям</p>
+      <div id="mysteryCards"></div>
+      <div style="height:14px;"></div>
+      <button class="btn btn-primary" onclick="rollMystery()">🎲 Крутить снова</button>
+      <div style="height:10px;"></div>
+      <button class="btn btn-ghost" onclick="goTo('start')">← Назад</button>
     </div>
   </div>
 
@@ -916,7 +763,26 @@
   </div>
 </div>
 
-<!-- SHREDDER OVERLAY -->
+<!-- STORY MODAL -->
+<div class="shredder-overlay" id="storyModal">
+  <div class="shredder-box" style="max-width:420px;">
+    <h3>📸 Выбери шаблон</h3>
+    <div class="story-templates">
+      <div class="story-tpl active" data-tpl="sunset" onclick="selectStoryTpl('sunset')">Sunset</div>
+      <div class="story-tpl" data-tpl="neon" onclick="selectStoryTpl('neon')">Neon</div>
+      <div class="story-tpl" data-tpl="minimal" onclick="selectStoryTpl('minimal')">Minimal</div>
+      <div class="story-tpl" data-tpl="y2k" onclick="selectStoryTpl('y2k')">Y2K</div>
+      <div class="story-tpl" data-tpl="forest" onclick="selectStoryTpl('forest')">Forest</div>
+      <div class="story-tpl" data-tpl="ocean" onclick="selectStoryTpl('ocean')">Ocean</div>
+    </div>
+    <div class="btn-row" style="margin-top:14px;">
+      <button class="btn btn-ghost" onclick="closeStoryModal()">Отмена</button>
+      <button class="btn btn-primary" onclick="downloadStory()">📥 Скачать</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHREDDER -->
 <div class="shredder-overlay" id="shredder">
   <div class="shredder-box">
     <div class="emoji">🗑️✨</div>
@@ -926,31 +792,46 @@
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast">Готово!</div>
 
 <script>
-/* ============ ДАННЫЕ ============ */
+/* ============ TELEGRAM WEB APP ============ */
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  try {
+    const theme = tg.colorScheme === 'dark' ? 'dark' : 'light';
+    setTheme(theme);
+  } catch(e) {}
+}
+
+/* ============ DATA ============ */
 const STYLES = [
-  { id: 'minimal', name: 'Минимализм', emoji: '⬜', tags: ['нейтральные', 'чистые линии', 'качественные ткани'] },
-  { id: 'grunge', name: 'Гранж', emoji: '🖤', tags: ['рваное', 'клетка', 'мартинсы'] },
-  { id: 'street', name: 'Streetwear', emoji: '🧢', tags: ['оверсайз', 'кроссовки', 'худи'] },
-  { id: 'oldmoney', name: 'Old Money', emoji: '🎩', tags: ['поло', 'лоферы', 'пастель'] },
-  { id: 'y2k', name: 'Y2K', emoji: '💿', tags: ['стразы', 'низкая талия', 'розовый'] },
-  { id: 'sport', name: 'Sport', emoji: '🏃', tags: ['техничные ткани', 'удобство', 'яркость'] },
-  { id: 'vintage', name: 'Винтаж', emoji: '📻', tags: ['секонд-хенд', 'ретро', 'уникальность'] },
-  { id: 'romantic', name: 'Romantic', emoji: '🌸', tags: ['кружево', 'пастель', 'платья'] },
-  { id: 'gorpcore', name: 'Gorpcore', emoji: '🏔️', tags: ['арктика', 'карманы', 'треккинговые ботинки'] },
-  { id: 'preppy', name: 'Preppy', emoji: '🎓', tags: ['рубашки', 'джинсы', 'лодочки'] },
-  { id: 'cyber', name: 'Cyberpunk', emoji: '🤖', tags: ['неон', 'кожа', 'техно'] },
-  { id: 'boho', name: 'Boho', emoji: '🌾', tags: ['свободный крой', 'этника', 'натуральные ткани'] },
+  { id: 'minimal', name: 'Минимализм', emoji: '⬜', tags: ['нейтральные', 'чистые линии', 'качественные ткани'], desc: '«Меньше — значит больше. Твой гардероб — как галерея современного искусства»' },
+  { id: 'grunge', name: 'Гранж', emoji: '🖤', tags: ['рваное', 'клетка', 'мартинсы'], desc: '«Курт Кобейн одобряет. Ты выглядишь так, будто только что с репетиции в гараже»' },
+  { id: 'street', name: 'Streetwear', emoji: '🧢', tags: ['оверсайз', 'кроссовки', 'худи'], desc: '«Улица — твой подиум. Джансы на ногах, худи на голове, уверенность в глазах»' },
+  { id: 'oldmoney', name: 'Old Money', emoji: '🎩', tags: ['поло', 'лоферы', 'пастель'], desc: '«Ты выглядишь так, будто твой дедушка основал банк. Тихая роскошь в каждой детали»' },
+  { id: 'y2k', name: 'Y2K', emoji: '💿', tags: ['стразы', 'низкая талия', 'розовый'], desc: '«Пэрис Хилтон 2003-го гордилась бы тобой. Блестки, бабочки, низкая талия»' },
+  { id: 'sport', name: 'Sport', emoji: '🏃', tags: ['техничные ткани', 'удобство', 'яркость'], desc: '«Ты всегда готов к марафону. Даже если марафон — до холодильника»' },
+  { id: 'vintage', name: 'Винтаж', emoji: '📻', tags: ['секонд-хенд', 'ретро', 'уникальность'], desc: '«Каждая твоя вещь — с историей. Блошиные рынки — твой храм»' },
+  { id: 'romantic', name: 'Romantic', emoji: '🌸', tags: ['кружево', 'пастель', 'платья'], desc: '«Ты как героиня фильма Софии Копполы. Нежность в каждой складке»' },
+  { id: 'gorpcore', name: 'Gorpcore', emoji: '🏔️', tags: ['арктика', 'карманы', 'треккинговые ботинки'], desc: '«Ты готов покорить Эверест. Даже если идёшь только до кофейни»' },
+  { id: 'preppy', name: 'Preppy', emoji: '🎓', tags: ['рубашки', 'джинсы', 'лодочки'], desc: '«Привет из элитного колледжа. Джемпер на плечах, книга в руках»' },
+  { id: 'cyber', name: 'Cyberpunk', emoji: '🤖', tags: ['неон', 'кожа', 'техно'], desc: '«Найт-сити 2077 ждёт тебя. Чёрная кожа, неон, взгляд из-под капюшона»' },
+  { id: 'boho', name: 'Boho', emoji: '🌾', tags: ['свободный крой', 'этника', 'натуральные ткани'], desc: '«Ты как с фестивала в Вудстоке. Свобода, лён, этнические украшения»' },
+  { id: 'coquette', name: 'Coquette', emoji: '🎀', tags: ['бантики', 'кружево', 'розовый'], desc: '«Лана Дель Рей в каждом движении. Банты, жемчуг, невинный взгляд»' },
+  { id: 'darkacademia', name: 'Dark Academia', emoji: '📚', tags: ['твид', 'береты', 'тёмные тона'], desc: '«Ты читаешь Оскара Уайльда в оригинале. Твид, береты, старые библиотеки»' },
+  { id: 'blokecore', name: 'Blokecore', emoji: '⚽', tags: ['футболки', 'джинсы', 'спортивный вайб'], desc: '«Футбольная форма как повседневная одежда. Папа одобряет»' },
+  { id: 'balletcore', name: 'Balletcore', emoji: '🩰', tags: ['балетки', 'пышные юбки', 'пастель'], desc: «Ты как балерина на отдыхе. Атлас, ленты, грация в каждом шаге»' },
 ];
 
 const ANTI = {
   minimal: 'y2k', grunge: 'oldmoney', street: 'romantic',
   oldmoney: 'grunge', y2k: 'minimal', sport: 'boho',
   vintage: 'cyber', romantic: 'street', gorpcore: 'minimal',
-  preppy: 'grunge', cyber: 'vintage', boho: 'sport'
+  preppy: 'grunge', cyber: 'vintage', boho: 'sport',
+  coquette: 'blokecore', darkacademia: 'y2k', blokecore: 'coquette', balletcore: 'gorpcore'
 };
 
 const HOBBIES = [
@@ -982,52 +863,52 @@ const SCENARIOS = [
 
 const QUIZ_SHORT = [
   { q: 'Твой идеальный выходной?', opts: [
-    { t: 'Кофейня + книга', s: ['minimal', 'oldmoney', 'preppy'] },
+    { t: 'Кофейня + книга', s: ['minimal', 'oldmoney', 'preppy', 'darkacademia'] },
     { t: 'Концерт + бар', s: ['grunge', 'cyber', 'street'] },
     { t: 'Секонд-хенд + парк', s: ['vintage', 'boho', 'romantic'] },
-    { t: 'Зал + протеин', s: ['sport', 'gorpcore'] },
+    { t: 'Зал + протеин', s: ['sport', 'gorpcore', 'blokecore'] },
   ]},
   { q: 'Что в шкафу чаще всего?', opts: [
-    { t: 'Чёрное и белое', s: ['minimal', 'cyber'] },
+    { t: 'Чёрное и белое', s: ['minimal', 'cyber', 'darkacademia'] },
     { t: 'Оверсайз худи', s: ['street', 'grunge'] },
-    { t: 'Рубашки и джемперы', s: ['oldmoney', 'preppy'] },
-    { t: 'Яркое и необычное', s: ['y2k', 'romantic', 'boho'] },
+    { t: 'Рубашки и джемперы', s: ['oldmoney', 'preppy', 'darkacademia'] },
+    { t: 'Яркое и необычное', s: ['y2k', 'romantic', 'boho', 'coquette'] },
   ]},
   { q: 'Обувь?', opts: [
     { t: 'Белые кеды', s: ['minimal', 'preppy'] },
-    { t: 'Мартинсы', s: ['grunge', 'vintage'] },
-    { t: 'Джансы / кроксы', s: ['y2k', 'sport'] },
+    { t: 'Мартинсы', s: ['grunge', 'vintage', 'darkacademia'] },
+    { t: 'Джансы / кроксы', s: ['y2k', 'sport', 'blokecore'] },
     { t: 'Треккинговые боты', s: ['gorpcore', 'sport'] },
   ]},
   { q: 'Любимый цвет?', opts: [
-    { t: 'Нейтральный (беж, серый)', s: ['minimal', 'oldmoney'] },
-    { t: 'Чёрный', s: ['grunge', 'cyber', 'street'] },
-    { t: 'Пастель', s: ['romantic', 'y2k', 'preppy'] },
+    { t: 'Нейтральный (беж, серый)', s: ['minimal', 'oldmoney', 'darkacademia'] },
+    { t: 'Чёрный', s: ['grunge', 'cyber', 'street', 'darkacademia'] },
+    { t: 'Пастель', s: ['romantic', 'y2k', 'preppy', 'coquette', 'balletcore'] },
     { t: 'Кислотный / неон', s: ['y2k', 'cyber', 'sport'] },
   ]},
   { q: 'Аксессуары?', opts: [
     { t: 'Ничего лишнего', s: ['minimal', 'sport'] },
     { t: 'Цепи, кольца', s: ['grunge', 'street', 'cyber'] },
-    { t: 'Жемчуг, бантики', s: ['romantic', 'y2k', 'preppy'] },
+    { t: 'Жемчуг, бантики', s: ['romantic', 'y2k', 'preppy', 'coquette', 'balletcore'] },
     { t: 'Этнические / хендмейд', s: ['boho', 'vintage'] },
   ]},
   { q: 'Как относишься к трендам?', opts: [
-    { t: 'Игнорирую — у меня своё', s: ['minimal', 'vintage', 'boho'] },
-    { t: 'Слежу и ношу', s: ['street', 'y2k', 'sport'] },
+    { t: 'Игнорирую — у меня своё', s: ['minimal', 'vintage', 'boho', 'darkacademia'] },
+    { t: 'Слежу и ношу', s: ['street', 'y2k', 'sport', 'blokecore'] },
     { t: 'Беру только классику', s: ['oldmoney', 'preppy'] },
-    { t: 'Миксую всё', s: ['grunge', 'romantic', 'cyber'] },
+    { t: 'Миксую всё', s: ['grunge', 'romantic', 'cyber', 'coquette'] },
   ]},
   { q: 'Идеальное свидание?', opts: [
-    { t: 'Галерея + вино', s: ['minimal', 'oldmoney', 'romantic'] },
-    { t: 'Скейт-парк + бургер', s: ['street', 'grunge'] },
+    { t: 'Галерея + вино', s: ['minimal', 'oldmoney', 'romantic', 'darkacademia'] },
+    { t: 'Скейт-парк + бургер', s: ['street', 'grunge', 'blokecore'] },
     { t: 'Пикник с гитарой', s: ['boho', 'vintage'] },
     { t: 'Квест-комната', s: ['cyber', 'sport', 'preppy'] },
   ]},
   { q: 'Твой вайб?', opts: [
-    { t: 'Тихая уверенность', s: ['minimal', 'oldmoney'] },
+    { t: 'Тихая уверенность', s: ['minimal', 'oldmoney', 'darkacademia'] },
     { t: 'Бунтарь', s: ['grunge', 'cyber', 'street'] },
-    { t: 'Мечтатель', s: ['romantic', 'boho', 'vintage'] },
-    { t: 'Энерджайзер', s: ['sport', 'y2k', 'preppy'] },
+    { t: 'Мечтатель', s: ['romantic', 'boho', 'vintage', 'coquette', 'balletcore'] },
+    { t: 'Энерджайзер', s: ['sport', 'y2k', 'preppy', 'blokecore'] },
   ]},
 ];
 
@@ -1036,18 +917,18 @@ const QUIZ_LONG_EXTRA = [
     { t: '90-е', s: ['grunge', 'minimal'] },
     { t: '00-е', s: ['y2k'] },
     { t: '70-е', s: ['boho', 'vintage'] },
-    { t: 'Современность', s: ['street', 'sport', 'cyber'] },
+    { t: 'Современность', s: ['street', 'sport', 'cyber', 'blokecore'] },
   ]},
   { q: 'Что бесит в моде?', opts: [
-    { t: 'Логотипы', s: ['minimal', 'oldmoney'] },
-    { t: 'Скучные базовые вещи', s: ['y2k', 'cyber', 'grunge'] },
-    { t: 'Неудобство', s: ['sport', 'gorpcore', 'street'] },
-    { t: 'Одинаковость', s: ['vintage', 'boho', 'romantic'] },
+    { t: 'Логотипы', s: ['minimal', 'oldmoney', 'darkacademia'] },
+    { t: 'Скучные базовые вещи', s: ['y2k', 'cyber', 'grunge', 'coquette'] },
+    { t: 'Неудобство', s: ['sport', 'gorpcore', 'street', 'blokecore'] },
+    { t: 'Одинаковость', s: ['vintage', 'boho', 'romantic', 'balletcore'] },
   ]},
   { q: 'Как выбираешь одежду?', opts: [
-    { t: 'По настроению', s: ['grunge', 'romantic', 'y2k'] },
+    { t: 'По настроению', s: ['grunge', 'romantic', 'y2k', 'coquette'] },
     { t: 'По погоде', s: ['gorpcore', 'sport'] },
-    { t: 'По случаю', s: ['oldmoney', 'preppy', 'minimal'] },
+    { t: 'По случаю', s: ['oldmoney', 'preppy', 'minimal', 'darkacademia'] },
     { t: 'Что под руку попалось', s: ['boho', 'vintage', 'street'] },
   ]},
   { q: 'Твой любимый бренд по духу?', opts: [
@@ -1059,50 +940,50 @@ const QUIZ_LONG_EXTRA = [
   { q: 'Что в сумке всегда?', opts: [
     { t: 'Минимум', s: ['minimal', 'sport'] },
     { t: 'Плёнка, патчи', s: ['grunge', 'cyber'] },
-    { t: 'Книга / блокнот', s: ['oldmoney', 'romantic', 'preppy'] },
-    { t: 'Куча всякой ерунды', s: ['y2k', 'boho', 'vintage'] },
+    { t: 'Книга / блокнот', s: ['oldmoney', 'romantic', 'preppy', 'darkacademia'] },
+    { t: 'Куча всякой ерунды', s: ['y2k', 'boho', 'vintage', 'coquette'] },
   ]},
   { q: 'Любимый материал?', opts: [
     { t: 'Хлопок / лён', s: ['minimal', 'boho', 'preppy'] },
     { t: 'Кожа / деним', s: ['grunge', 'vintage', 'cyber'] },
-    { t: 'Техничная синтетика', s: ['sport', 'gorpcore'] },
-    { t: 'Шёлк / бархат', s: ['romantic', 'y2k', 'oldmoney'] },
+    { t: 'Техничная синтетика', s: ['sport', 'gorpcore', 'blokecore'] },
+    { t: 'Шёлк / бархат', s: ['romantic', 'y2k', 'oldmoney', 'balletcore'] },
   ]},
   { q: 'Принты?', opts: [
-    { t: 'Никаких', s: ['minimal', 'oldmoney'] },
-    { t: 'Полоска / клетка', s: ['preppy', 'grunge'] },
-    { t: 'Цветы / абстракция', s: ['boho', 'romantic'] },
-    { t: 'Графика / логотипы', s: ['street', 'y2k', 'cyber'] },
+    { t: 'Никаких', s: ['minimal', 'oldmoney', 'darkacademia'] },
+    { t: 'Полоска / клетка', s: ['preppy', 'grunge', 'darkacademia'] },
+    { t: 'Цветы / абстракция', s: ['boho', 'romantic', 'coquette'] },
+    { t: 'Графика / логотипы', s: ['street', 'y2k', 'cyber', 'blokecore'] },
   ]},
   { q: 'Как относишься к украшениям?', opts: [
-    { t: 'Не ношу', s: ['minimal', 'gorpcore'] },
+    { t: 'Не ношу', s: ['minimal', 'gorpcore', 'blokecore'] },
     { t: 'Массивные цепи', s: ['street', 'grunge'] },
-    { t: 'Тонкие, незаметные', s: ['oldmoney', 'romantic', 'preppy'] },
-    { t: 'Много и ярко', s: ['y2k', 'boho', 'cyber'] },
+    { t: 'Тонкие, незаметные', s: ['oldmoney', 'romantic', 'preppy', 'darkacademia'] },
+    { t: 'Много и ярко', s: ['y2k', 'boho', 'cyber', 'coquette', 'balletcore'] },
   ]},
   { q: 'Твой любимый фильм по эстетике?', opts: [
     { t: '«Трудности перевода»', s: ['minimal', 'oldmoney'] },
     { t: '«Дети» / «Гармонь»', s: ['grunge', 'vintage'] },
-    { t: '«Амели»', s: ['romantic', 'vintage'] },
+    { t: '«Амели»', s: ['romantic', 'vintage', 'coquette'] },
     { t: '«Матрица»', s: ['cyber', 'street'] },
   ]},
   { q: 'Последнее, что купил?', opts: [
-    { t: 'Качественную базу', s: ['minimal', 'oldmoney'] },
-    { t: 'Что-то безумное', s: ['y2k', 'cyber', 'grunge'] },
+    { t: 'Качественную базу', s: ['minimal', 'oldmoney', 'darkacademia'] },
+    { t: 'Что-то безумное', s: ['y2k', 'cyber', 'grunge', 'coquette'] },
     { t: 'Винтаж на блошке', s: ['vintage', 'boho'] },
-    { t: 'Спортивную вещь', s: ['sport', 'gorpcore', 'street'] },
+    { t: 'Спортивную вещь', s: ['sport', 'gorpcore', 'street', 'blokecore'] },
   ]},
   { q: 'Как ухаживаешь за вещами?', opts: [
-    { t: 'Очень аккуратно', s: ['oldmoney', 'preppy', 'minimal'] },
+    { t: 'Очень аккуратно', s: ['oldmoney', 'preppy', 'minimal', 'darkacademia'] },
     { t: 'Чем старше, тем лучше', s: ['vintage', 'grunge', 'boho'] },
-    { t: 'Ношу до дыр', s: ['street', 'sport', 'gorpcore'] },
-    { t: 'Быстро надоедает', s: ['y2k', 'cyber', 'romantic'] },
+    { t: 'Ношу до дыр', s: ['street', 'sport', 'gorpcore', 'blokecore'] },
+    { t: 'Быстро надоедает', s: ['y2k', 'cyber', 'romantic', 'coquette', 'balletcore'] },
   ]},
   { q: 'Твой Instagram?', opts: [
-    { t: 'Эстетичный и спокойный', s: ['minimal', 'oldmoney', 'romantic'] },
+    { t: 'Эстетичный и спокойный', s: ['minimal', 'oldmoney', 'romantic', 'darkacademia'] },
     { t: 'Хаотичный и живой', s: ['grunge', 'boho', 'vintage'] },
-    { t: 'Яркий и дерзкий', s: ['y2k', 'cyber', 'street'] },
-    { t: 'Почти не веду', s: ['sport', 'gorpcore', 'preppy'] },
+    { t: 'Яркий и дерзкий', s: ['y2k', 'cyber', 'street', 'coquette'] },
+    { t: 'Почти не веду', s: ['sport', 'gorpcore', 'preppy', 'blokecore'] },
   ]},
 ];
 
@@ -1119,18 +1000,74 @@ const CAPSULES = {
   preppy: [['👔','Рубашка + джемпер'],['👖','Прямые джинсы'],['👞','Лоферы на носке']],
   cyber: [['🧥','Кожаная куртка'],['👕','Графичная футболка'],['🥾','Грубые ботинки']],
   boho: [['👗','Льняное платье'],['🧣','Этнический шарф'],['👡','Сандалии']],
+  coquette: [['👚','Топ с бантом'],['👗','Пышная юбка'],['🩰','Балетки с лентой']],
+  darkacademia: [['🧥','Твидовый пиджак'],['👔','Рубашка + галстук'],['👞','Оксфорды']],
+  blokecore: [['👕','Футбольная джерси'],['👖','Прямые джинсы'],['👟','Ретро-бутсы']],
+  balletcore: [['🩰','Атласные балетки'],['👗','Пышная пачка'],['🎀','Топ с лентами']],
+};
+
+const COUPLES_OUTFITS = {
+  minimal_minimal: { title: 'Тихая роскошь', emoji: '⬜⬜', desc: 'Вы как пара из скандинавского журнала. Нейтральные тона, идеальные пропорции.', items: [['🤍','Белые рубашки','Оба'],['👖','Прямые джинсы','Оба'],['👟','Белые кеды','Оба']] },
+  grunge_grunge: { title: 'Рок-звёзды', emoji: '🖤🖤', desc: 'Курт и Кортни современности. Рваное, клетка, мартинсы.', items: [['🧥','Кожаные косухи','Оба'],['👕','Клетчатые рубашки','Оба'],['🥾','Мартинсы','Оба']] },
+  oldmoney_oldmoney: { title: 'Династия', emoji: '🎩🎩', desc: 'Вы выглядите так, будто ваши семьи знакомы ещё с 1920-х.', items: [['👔','Поло / рубашки','Оба'],['👖','Брюки чинос','Оба'],['👞','Лоферы','Оба']] },
+  y2k_y2k: { title: 'Пэрис и Джастин', emoji: '💿💿', desc: 'Розовый Cadillac, стразы, низкая талия. 2003-й навсегда.', items: [['👚','Топы со стразами','Оба'],['👖','Джинсы low-rise','Оба'],['👡','Платформа','Оба']] },
+  street_street: { title: 'Hype-пара', emoji: '🧢🧢', desc: 'Лимитед-эдишн кроссовки, оверсайз, худи с редким принтом.', items: [['🧢','Худи оверсайз','Оба'],['👖','Широкие джинсы','Оба'],['👟','Редкие джансы','Оба']] },
+  cyber_cyber: { title: 'Найт-Сити', emoji: '🤖🤖', desc: 'Чёрная кожа, неон, очки даже ночью. Киберпанк-романтика.', items: [['🧥','Кожаные куртки','Оба'],['🕶️','Очки-щитки','Оба'],['🥾','Грубые боты','Оба']] },
+  darkacademia_darkacademia: { title: 'Тайное общество', emoji: '📚📚', desc: 'Твид, береты, старые книги. Вы знакомы в библиотеке Йеля.', items: [['🧥','Твидовые пиджаки','Оба'],['👔','Рубашки + галстуки','Оба'],['👞','Оксфорды','Оба']] },
+  coquette_coquette: { title: 'Лолита-вайб', emoji: '🎀🎀', desc: 'Банты, жемчуг, пастель. Вы как героини фильма Софии Копполы.', items: [['👚','Топы с бантами','Оба'],['👗','Пышные юбки','Оба'],['🩰','Балетки','Оба']] },
+  // Кросс-стили
+  minimal_oldmoney: { title: 'Тихая элегантность', emoji: '⬜🎩', desc: 'Качественные ткани, нейтральные тона, идеальная посадка.', items: [['👔','Рубашки','Вместе'],['👖','Прямые брюки','Вместе'],['👞','Лоферы / кеды','Вместе']] },
+  grunge_y2k: { title: '90-е vs 00-е', emoji: '🖤💿', desc: 'Бунт против гламура. Мартинсы + стразы — это работает.', items: [['🧥','Косуха','Он'],['👚','Топ со стразами','Она'],['🥾','Мартинсы','Оба']] },
+  street_sport: { title: 'Athleisure-пара', emoji: '🧢🏃', desc: 'Спортивный шик. Удобно, стильно, для города и зала.', items: [['🎽','Техничные куртки','Оба'],['👖','Джоггеры','Оба'],['👟','Кроссовки','Оба']] },
+  romantic_boho: { title: 'Фестивальная пара', emoji: '🌸🌾', desc: 'Лён, кружево, цветы. Вы как с Coachella.', items: [['👗','Льняные платья','Оба'],['🧣','Этнические шарфы','Оба'],['👡','Сандалии','Оба']] },
+  default: { title: 'Контрастная пара', emoji: '✨✨', desc: 'Разные стили — но вместе это выглядит как модный редакторский разворот.', items: [['👕','Ваш стиль','Ты'],['👗','Его стиль','Партнёр'],['🤝','Общий аксессуар','Вместе']] },
+};
+
+const MYSTERY_CRITERIA = [
+  { q: 'Кто кого заставит слушать рэп в 3 часа ночи?', answers: ['Тот, кто в streetwear', 'Тот, кто в гранже', 'Тот, кто в оверсайзе', 'Тот, у кого больше цепей'] },
+  { q: 'Кто первым предложит усыновить кота?', answers: ['Тот, кто в romantic', 'Тот, кто в boho', 'Тот, кто в coquette', 'Тот, кто в vintage'] },
+  { q: 'Кто будет тащить в караоке?', answers: ['Тот, кто в Y2K', 'Тот, кто в streetwear', 'Тот, кто в cyber', 'Тот, кто в sport'] },
+  { q: 'Кто будет спорить о вине в ресторане?', answers: ['Тот, кто в old money', 'Тот, кто в dark academia', 'Тот, кто в preppy', 'Тот, кто в minimal'] },
+  { q: 'Кто первым начнёт танцевать на столе?', answers: ['Тот, кто в grunge', 'Тот, кто в cyber', 'Тот, кто в y2k', 'Тот, кто в blokecore'] },
+  { q: 'Кто будет фотографировать еду перед тем, как есть?', answers: ['Тот, кто в minimal', 'Тот, кто в coquette', 'Тот, кто в y2k', 'Тот, кто в streetwear'] },
+  { q: 'Кто будет читать стихи при свечах?', answers: ['Тот, кто в dark academia', 'Тот, кто в romantic', 'Тот, кто в vintage', 'Тот, кто в boho'] },
+  { q: 'Кто будет коллекционировать виниловые пластинки?', answers: ['Тот, кто в vintage', 'Тот, кто в grunge', 'Тот, кто в dark academia', 'Тот, кто в minimal'] },
+  { q: 'Кто будет носить пижаму в магазин?', answers: ['Тот, кто в sport', 'Тот, кто в streetwear', 'Тот, кто в gorpcore', 'Тот, кто в blokecore'] },
+  { q: 'Кто первым предложит поехать в Икею на свидание?', answers: ['Тот, кто в minimal', 'Тот, кто в old money', 'Тот, кто в preppy', 'Тот, кто в sport'] },
+  { q: 'Кто будет знать все слова культовых андеграунд-групп?', answers: ['Тот, кто в grunge', 'Тот, кто в cyber', 'Тот, кто в vintage', 'Тот, кто в dark academia'] },
+  { q: 'Кто будет делать селфи каждые 5 минут?', answers: ['Тот, кто в y2k', 'Тот, кто в coquette', 'Тот, кто в balletcore', 'Тот, кто в streetwear'] },
+];
+
+const BATTLE_COMMENTS = {
+  coffee: {
+    win: ['Этот лук кричит: «Я читаю Харуки Мураками и пью фильтр-кофе». Идеально для кофейни.', 'В этом образе ты выглядишь так, будто только что вышел из скандинавского фильма. Бариста уже влюблён.', 'Этот лук — как идеальный_flat_white: сбалансированный, стильный, без лишнего.'],
+    lose: ['Слишком ярко для утреннего эспрессо. Этот образ — для вечернего коктейля.', 'В этом ты выглядишь так, будто собираешься на рейв, а не на капучино.', 'Слишком много аксессуаров. Кофейня — не подиум.']
+  },
+  study: {
+    win: ['Этот образ говорит: «Я сдам все сессии и буду выглядеть при этом». Dark academia вайб.', 'Идеальный баланс между «я серьёзно учусь» и «я всё ещё привлекателен». Преподаватель поставит автомат.', 'В этом луке ты как герой фильма про Оксфорд. Только лучше.'],
+    lose: ['Слишком празднично для библиотеки. Этот образ — для выпускного, а не для курсовой.', 'В этом ты выглядишь так, будто прогуливаешь пары. А надо наоборот.', 'Слишком расслабленно. Так и хочется сказать: «А домашку ты сделал?»']
+  },
+  party: {
+    win: ['Этот лук — билет в VIP-зону. Все будут оборачиваться.', 'В этом образе ты как с обложки журнала. Диджей уже ставит твой трек.', 'Этот образ кричит: «Я здесь главный». И это работает.'],
+    lose: ['Слишком скромно для вечеринки. Этот образ — для утреннего йога-класса.', 'В этом ты выглядишь так, будто пришёл проверять счётчик электричества.', 'Слишком скучно. Вечеринка требует драмы, а это — офисный кэжуал.']
+  },
+  date: {
+    win: ['Этот образ — идеальное сочетание «мне не всё равно» и «я не старался слишком сильно». Свидание удалось.', 'В этом луке ты как с Pinterest-доски «идеальное свидание». Всё.', 'Этот образ говорит: «Я интересный человек, и мне есть что показать».'],
+    lose: ['Слишком формально для свидания. Этот образ — для собеседования, а не для поцелуя.', 'В этом ты выглядишь так, будто идёшь на похороны. А надо на свидание.', 'Слишком расслабленно. Так и хочется сказать: «А ты вообще собирался?»']
+  },
+  walk: {
+    win: ['Этот образ — как прогулка по осеннему парку. Уютно, стильно, идеально.', 'В этом луке ты как герой инди-фильма. Все собаки будут вилять хвостом.', 'Этот образ говорит: «Я люблю гулять, но выгляжу при этом отлично».'],
+    lose: ['Слишком нарядно для прогулки. Этот образ — для красной дорожки, а не для парка.', 'В этом ты выглядишь так, будто идёшь на работу. А надо гулять.', 'Слишком ярко. Ты отпугнёшь всех белок.']
+  }
 };
 
 /* ============ STATE ============ */
 const state = {
-  gender: null,
-  styles: [],
-  hobbies: [],
-  scenario: null,
-  quizAnswers: [],
-  photo: null,
-  faceBlur: false,
-  soundOn: true,
+  gender: null, styles: [], hobbies: [], scenario: null,
+  quizAnswers: [], photo: null, faceBlur: false, soundOn: true,
+  dualStyles: [], apiKey: localStorage.getItem('lm_api_key') || null,
+  battlePhotos: [null, null], battleScenario: null,
+  couples1: [], couples2: [], storyTpl: 'sunset',
 };
 
 /* ============ AUDIO ============ */
@@ -1141,14 +1078,11 @@ function beep(freq=440, dur=0.08, type='sine', vol=0.05) {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    osc.type = type;
-    osc.frequency.value = freq;
+    osc.type = type; osc.frequency.value = freq;
     gain.gain.value = vol;
     gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + dur);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + dur);
   } catch(e) {}
 }
 function sndClick() { beep(600, 0.05, 'sine', 0.04); }
@@ -1165,17 +1099,40 @@ function goTo(id) {
 
 /* ============ THEME ============ */
 function setTheme(t) {
-  document.documentElement.setAttribute('data-theme', t === 'light' ? '' : t);
   if (t === 'light') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', t);
   document.querySelectorAll('.theme-dot').forEach(d => d.classList.toggle('active', d.dataset.t === t));
   sndClick();
 }
 
-/* ============ SOUND TOGGLE ============ */
+/* ============ SOUND ============ */
 document.getElementById('soundBtn').onclick = () => {
   state.soundOn = !state.soundOn;
   document.getElementById('soundBtn').textContent = state.soundOn ? '🔊' : '🔇';
 };
+
+/* ============ API KEY ============ */
+function saveApiKey() {
+  const key = document.getElementById('apiKey').value.trim();
+  if (key) {
+    state.apiKey = key;
+    localStorage.setItem('lm_api_key', key);
+    document.getElementById('apiStatus').textContent = '✓ Статус: подключён';
+    document.getElementById('apiStatus').className = 'api-status ok';
+    toast('Ключ сохранён!');
+    sndSuccess();
+  } else {
+    state.apiKey = null;
+    localStorage.removeItem('lm_api_key');
+    document.getElementById('apiStatus').textContent = 'Статус: не подключён';
+    document.getElementById('apiStatus').className = 'api-status';
+  }
+}
+if (state.apiKey) {
+  document.getElementById('apiKey').value = '••••••••';
+  document.getElementById('apiStatus').textContent = '✓ Статус: подключён';
+  document.getElementById('apiStatus').className = 'api-status ok';
+}
 
 /* ============ GENDER ============ */
 document.querySelectorAll('.gender-btn').forEach(b => {
@@ -1190,34 +1147,29 @@ document.querySelectorAll('.gender-btn').forEach(b => {
 /* ============ UPLOAD ============ */
 const uploadZone = document.getElementById('uploadZone');
 const fileInput = document.getElementById('fileInput');
-const scanTags = document.getElementById('scanTags');
 
 uploadZone.onclick = () => fileInput.click();
-fileInput.onchange = (e) => {
+fileInput.onchange = async (e) => {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = (ev) => {
+  reader.onload = async (ev) => {
     state.photo = ev.target.result;
     uploadZone.innerHTML = `<img src="${ev.target.result}" id="uploadedImg" />
       <div class="scan-tags" id="scanTags"></div>`;
     document.getElementById('blurToggle').style.display = 'flex';
-    startScan();
+    await startScan();
   };
   reader.readAsDataURL(file);
 };
 
-function startScan() {
+async function startScan() {
   uploadZone.classList.add('scanning');
   const tags = ['оверсайз...', 'деним...', 'нейтральные тона...', 'винтаж...', 'чистые линии...', 'текстура...', 'крой...'];
   const container = document.getElementById('scanTags');
   let i = 0;
   const interval = setInterval(() => {
-    if (i >= tags.length) {
-      clearInterval(interval);
-      setTimeout(finishScan, 600);
-      return;
-    }
+    if (i >= tags.length) { clearInterval(interval); return; }
     const tag = document.createElement('div');
     tag.className = 'scan-tag';
     tag.textContent = tags[i];
@@ -1225,15 +1177,72 @@ function startScan() {
     beep(400 + i * 50, 0.05, 'sine', 0.03);
     i++;
   }, 300);
+
+  // Реальный анализ через Gemini или имитация
+  let detectedStyles;
+  if (state.apiKey) {
+    try {
+      document.getElementById('apiStatus').textContent = '🔄 Анализирую через Gemini...';
+      const result = await analyzeWithGemini(state.photo, state.apiKey);
+      detectedStyles = result.styles || [];
+      toast('ИИ проанализировал фото!');
+    } catch(e) {
+      console.error(e);
+      document.getElementById('apiStatus').textContent = '⚠ Ошибка API, использую имитацию';
+      document.getElementById('apiStatus').className = 'api-status err';
+      detectedStyles = simulateAnalysis();
+    }
+  } else {
+    await new Promise(r => setTimeout(r, 2500));
+    detectedStyles = simulateAnalysis();
+  }
+
+  setTimeout(() => {
+    uploadZone.classList.remove('scanning');
+    state.styles = detectedStyles.slice(0, 2);
+    showShredder();
+    setTimeout(() => goTo('hobbies'), 100);
+  }, 600);
 }
 
-function finishScan() {
-  uploadZone.classList.remove('scanning');
-  // Имитация анализа: выбираем стили на основе "средней яркости" + рандом
+function simulateAnalysis() {
   const shuffled = [...STYLES].sort(() => Math.random() - 0.5);
-  state.styles = shuffled.slice(0, 2).map(s => s.id);
-  showShredder();
-  setTimeout(() => goTo('hobbies'), 100);
+  return shuffled.slice(0, 2).map(s => s.id);
+}
+
+async function analyzeWithGemini(imageBase64, apiKey) {
+  const styleNames = STYLES.map(s => s.name).join(', ');
+  const prompt = `Проанализируй стиль одежды на фото. Ответь ТОЛЬКО валидным JSON без markdown:
+{"styles": ["стиль1", "стиль2"], "comment": "смешной модный комментарий на русском до 100 символов"}
+Возможные стили: ${styleNames}. Выбери 1-2 наиболее подходящих.`;
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      contents: [{
+        parts: [
+          { text: prompt },
+          { inline_data: { mime_type: 'image/jpeg', data: imageBase64.split(',')[1] } }
+        ]
+      }],
+      generationConfig: { temperature: 0.7, maxOutputTokens: 200 }
+    })
+  });
+
+  if (!response.ok) throw new Error('API error: ' + response.status);
+  const data = await response.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const cleaned = text.replace(/```json|```/g, '').trim();
+  const parsed = JSON.parse(cleaned);
+
+  // Маппинг названий стилей на id
+  const mapped = (parsed.styles || []).map(name => {
+    const found = STYLES.find(s => s.name.toLowerCase() === name.toLowerCase());
+    return found ? found.id : null;
+  }).filter(Boolean);
+
+  return { styles: mapped.length ? mapped : simulateAnalysis(), comment: parsed.comment };
 }
 
 /* ============ FACE BLUR ============ */
@@ -1246,16 +1255,11 @@ document.getElementById('blurSwitch').onclick = () => {
 };
 
 /* ============ SHREDDER ============ */
-function showShredder() {
-  document.getElementById('shredder').classList.add('show');
-  sndSuccess();
-}
-function closeShredder() {
-  document.getElementById('shredder').classList.remove('show');
-}
+function showShredder() { document.getElementById('shredder').classList.add('show'); sndSuccess(); }
+function closeShredder() { document.getElementById('shredder').classList.remove('show'); }
 
 /* ============ STYLE CHIPS ============ */
-function renderStyleChips(containerId, max = 3, onChange) {
+function renderStyleChips(containerId, stateArr, max = 3) {
   const c = document.getElementById(containerId);
   c.innerHTML = '';
   STYLES.forEach(s => {
@@ -1263,33 +1267,24 @@ function renderStyleChips(containerId, max = 3, onChange) {
     chip.className = 'chip';
     chip.innerHTML = `${s.emoji} ${s.name}`;
     chip.onclick = () => {
-      const arr = containerId === 'styleChips' ? state.styles : state.dualStyles;
-      const idx = arr.indexOf(s.id);
+      const idx = stateArr.indexOf(s.id);
       if (idx >= 0) {
-        arr.splice(idx, 1);
+        stateArr.splice(idx, 1);
         chip.classList.remove('active');
       } else {
-        if (arr.length >= max) {
-          toast(`Максимум ${max}`);
-          return;
-        }
-        arr.push(s.id);
+        if (stateArr.length >= max) { toast(`Максимум ${max}`); return; }
+        stateArr.push(s.id);
         chip.classList.add('active');
       }
       sndClick();
-      if (onChange) onChange();
     };
     c.appendChild(chip);
   });
 }
-state.dualStyles = [];
-renderStyleChips('styleChips', 3);
+renderStyleChips('styleChips', state.styles, 3);
 
 function calcFromStyles() {
-  if (state.styles.length === 0) {
-    toast('Выбери хотя бы один стиль');
-    return;
-  }
+  if (state.styles.length === 0) { toast('Выбери хотя бы один стиль'); return; }
   goTo('hobbies');
 }
 
@@ -1304,13 +1299,8 @@ function renderHobbies() {
     chip.title = h.name;
     chip.onclick = () => {
       const idx = state.hobbies.indexOf(h.id);
-      if (idx >= 0) {
-        state.hobbies.splice(idx, 1);
-        chip.classList.remove('active');
-      } else {
-        state.hobbies.push(h.id);
-        chip.classList.add('active');
-      }
+      if (idx >= 0) { state.hobbies.splice(idx, 1); chip.classList.remove('active'); }
+      else { state.hobbies.push(h.id); chip.classList.add('active'); }
       sndClick();
     };
     c.appendChild(chip);
@@ -1319,47 +1309,42 @@ function renderHobbies() {
 renderHobbies();
 
 /* ============ SCENARIOS ============ */
-function renderScenarios() {
-  const c = document.getElementById('scenarioGrid');
+function renderScenarios(containerId, stateKey) {
+  const c = document.getElementById(containerId);
   c.innerHTML = '';
   SCENARIOS.forEach(s => {
     const btn = document.createElement('button');
     btn.className = 'scenario';
     btn.innerHTML = `<span class="emoji">${s.emoji}</span><span class="label">${s.name}</span>`;
     btn.onclick = () => {
-      document.querySelectorAll('.scenario').forEach(x => x.classList.remove('active'));
+      c.querySelectorAll('.scenario').forEach(x => x.classList.remove('active'));
       btn.classList.add('active');
-      state.scenario = s.id;
+      state[stateKey] = s.id;
       sndClick();
     };
     c.appendChild(btn);
   });
 }
-renderScenarios();
+renderScenarios('scenarioGrid', 'scenario');
+renderScenarios('battleScenarioGrid', 'battleScenario');
 
 /* ============ QUIZ ============ */
-let quizQuestions = [];
-let quizIdx = 0;
+let quizQuestions = [], quizIdx = 0;
 
 function startQuiz(len) {
   quizQuestions = len === 20 ? [...QUIZ_SHORT, ...QUIZ_LONG_EXTRA] : QUIZ_SHORT;
-  quizIdx = 0;
-  state.quizAnswers = [];
-  renderQuiz();
-  goTo('quiz');
+  quizIdx = 0; state.quizAnswers = [];
+  renderQuiz(); goTo('quiz');
 }
-document.querySelector('[onclick="goTo(\'quiz\')"]').onclick = () => startQuiz(8);
-document.querySelector('[onclick="goTo(\'quiz-long\')"]').onclick = () => startQuiz(20);
 
 function renderQuiz() {
   const q = quizQuestions[quizIdx];
   document.getElementById('quizQ').textContent = q.q;
   const opts = document.getElementById('quizOpts');
   opts.innerHTML = '';
-  q.opts.forEach((o, i) => {
+  q.opts.forEach(o => {
     const b = document.createElement('button');
-    b.className = 'quiz-opt';
-    b.textContent = o.t;
+    b.className = 'quiz-opt'; b.textContent = o.t;
     b.onclick = () => {
       document.querySelectorAll('.quiz-opt').forEach(x => x.classList.remove('active'));
       b.classList.add('active');
@@ -1369,57 +1354,44 @@ function renderQuiz() {
     };
     opts.appendChild(b);
   });
-  document.getElementById('quizBar').style.width = ((quizIdx) / quizQuestions.length * 100) + '%';
+  document.getElementById('quizBar').style.width = (quizIdx / quizQuestions.length * 100) + '%';
   document.getElementById('quizNext').disabled = true;
 }
 
 document.getElementById('quizNext').onclick = () => {
   quizIdx++;
   if (quizIdx >= quizQuestions.length) {
-    // Собираем стили из ответов
     const counts = {};
     state.quizAnswers.forEach(arr => arr.forEach(s => counts[s] = (counts[s] || 0) + 1));
     const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]);
     state.styles = sorted.slice(0, 2).map(x => x[0]);
     goTo('hobbies');
-  } else {
-    renderQuiz();
-  }
+  } else renderQuiz();
 };
 
-/* ============ SWIPE REFINE ============ */
+/* ============ SWIPE ============ */
 const SWIPE_LOOKS = [
-  { emoji: '🖤🧥', s: 'grunge' },
-  { emoji: '⬜👔', s: 'minimal' },
-  { emoji: '💿✨', s: 'y2k' },
-  { emoji: '🏔️🎒', s: 'gorpcore' },
+  { emoji: '🖤🧥', s: 'grunge' }, { emoji: '⬜👔', s: 'minimal' },
+  { emoji: '💿✨', s: 'y2k' }, { emoji: '🏔️🎒', s: 'gorpcore' },
   { emoji: '🌸👗', s: 'romantic' },
 ];
-let swipeIdx = 0;
-let swipeLikes = [];
+let swipeIdx = 0, swipeLikes = [];
 
 function startSwipe() {
-  swipeIdx = 0;
-  swipeLikes = [];
-  renderSwipe();
-  goTo('swipe');
+  swipeIdx = 0; swipeLikes = [];
+  renderSwipe(); goTo('swipe');
 }
 
 function renderSwipe() {
   const stack = document.getElementById('swipeStack');
   stack.innerHTML = '';
-  if (swipeIdx >= SWIPE_LOOKS.length) {
-    finishSwipe(true);
-    return;
-  }
+  if (swipeIdx >= SWIPE_LOOKS.length) { finishSwipe(); return; }
   const look = SWIPE_LOOKS[swipeIdx];
   const card = document.createElement('div');
   card.className = 'swipe-card';
-  card.innerHTML = `
-    <div>${look.emoji}</div>
+  card.innerHTML = `<div>${look.emoji}</div>
     <div class="swipe-label like">LIKE</div>
-    <div class="swipe-label nope">NOPE</div>
-  `;
+    <div class="swipe-label nope">NOPE</div>`;
   let startX = 0, currentX = 0, isDragging = false;
   card.onmousedown = card.ontouchstart = (e) => {
     isDragging = true;
@@ -1449,10 +1421,7 @@ function renderSwipe() {
       return;
     }
     card.style.opacity = 0;
-    setTimeout(() => {
-      swipeIdx++;
-      renderSwipe();
-    }, 300);
+    setTimeout(() => { swipeIdx++; renderSwipe(); }, 300);
   };
   document.addEventListener('mousemove', move);
   document.addEventListener('touchmove', move);
@@ -1461,53 +1430,84 @@ function renderSwipe() {
   stack.appendChild(card);
 }
 
-function finishSwipe(isNope) {
-  // Корректируем стили на основе свайпов
+function finishSwipe(like = false) {
+  if (like && swipeIdx < SWIPE_LOOKS.length) swipeLikes.push(SWIPE_LOOKS[swipeIdx].s);
   if (swipeLikes.length > 0) {
-    // Убираем то, что не зашло, добавляем то, что зашло
     const toAdd = swipeLikes.filter(s => !state.styles.includes(s)).slice(0, 1);
     state.styles = [...state.styles, ...toAdd].slice(0, 3);
   }
   calcResult();
 }
 
-/* ============ RESULT CALC ============ */
-function calcResult() {
-  if (state.styles.length === 0) {
-    state.styles = ['minimal', 'street'];
+/* ============ MATCH ENGINE ============ */
+function findMatches(myStyles) {
+  // Генерируем "базу" людей со стилями
+  const pool = [];
+  const names = ['Аня', 'Макс', 'Лиза', 'Дима', 'Соня', 'Артём', 'Вика', 'Никита', 'Катя', 'Саша', 'Маша', 'Илья'];
+  for (let i = 0; i < 30; i++) {
+    const s1 = STYLES[Math.floor(Math.random() * STYLES.length)].id;
+    let s2 = STYLES[Math.floor(Math.random() * STYLES.length)].id;
+    while (s2 === s1) s2 = STYLES[Math.floor(Math.random() * STYLES.length)].id;
+    pool.push({
+      name: names[Math.floor(Math.random() * names.length)],
+      styles: [s1, s2],
+      hobbies: HOBBIES.sort(() => Math.random() - 0.5).slice(0, 3).map(h => h.id),
+    });
   }
+
+  // Считаем совместимость
+  return pool.map(p => {
+    let score = 0;
+    // Совпадение стилей
+    p.styles.forEach(s => { if (myStyles.includes(s)) score += 30; });
+    // Хорошие комбинации (не анти-мэтч)
+    myStyles.forEach(ms => {
+      p.styles.forEach(ps => {
+        if (ANTI[ms] !== ps) score += 10;
+        else score -= 20;
+      });
+    });
+    // Общие хобби
+    const commonHobbies = p.hobbies.filter(h => state.hobbies.includes(h));
+    score += commonHobbies.length * 15;
+    // Рандом для живости
+    score += Math.floor(Math.random() * 20);
+    return { ...p, score: Math.max(0, Math.min(100, score)) };
+  }).sort((a, b) => b.score - a.score).slice(0, 3);
+}
+
+/* ============ RESULT ============ */
+function calcResult() {
+  if (state.styles.length === 0) state.styles = ['minimal', 'street'];
   const mainStyle = STYLES.find(s => s.id === state.styles[0]);
   document.getElementById('resStyle').textContent = mainStyle.name;
+  document.getElementById('resStyleDesc').textContent = mainStyle.desc || '';
 
-  // Идеальная пара — стили, которые хорошо сочетаются
-  const goodPairs = state.styles.map(s => {
-    const anti = ANTI[s];
-    return STYLES.filter(x => x.id !== s && x.id !== anti).slice(0, 2);
-  }).flat();
-  const uniquePairs = [...new Set(goodPairs)].slice(0, 3).map(id => STYLES.find(s => s.id === id));
-
-  const pairsHtml = uniquePairs.map(p => `
-    <div class="match-pair">
-      <div class="match-avatar">${p.emoji}</div>
+  // Реальный поиск мэтчей
+  const matches = findMatches(state.styles);
+  document.getElementById('resPairs').innerHTML = matches.map(m => {
+    const style = STYLES.find(s => s.id === m.styles[0]);
+    return `<div class="match-pair">
+      <div class="match-avatar">${style.emoji}</div>
       <div class="match-info">
-        <div class="name">${p.name}</div>
-        <div class="desc">${p.tags.join(' · ')}</div>
+        <div class="name">${m.name}</div>
+        <div class="desc">${style.name} · ${m.hobbies.map(h => HOBBIES.find(x => x.id === h)?.emoji).join('')}</div>
+        <div class="pct">Совместимость: ${m.score}%</div>
       </div>
-    </div>
-  `).join('');
-  document.getElementById('resPairs').innerHTML = pairsHtml;
+    </div>`;
+  }).join('');
 
   // Анти-мэтч
   const antiId = ANTI[state.styles[0]];
   const antiStyle = STYLES.find(s => s.id === antiId);
   document.getElementById('antiName').textContent = `${antiStyle.emoji} ${antiStyle.name}`;
-  document.getElementById('antiDesc').textContent = `С этим стилем на шопинге лучше не ходить — будете спорить у каждой витрины.`;
+  document.getElementById('antiDesc').textContent = 'С этим стилем на шопинге лучше не ходить — будете спорить у каждой витрины.';
 
   // Капсула
   const capsule = CAPSULES[state.styles[0]];
-  document.getElementById('resCapsule').innerHTML = capsule.map(c => `
-    <div class="capsule-item"><span class="emoji">${c[0]}</span>${c[1]}</div>
-  `).join('');
+  document.getElementById('resCapsule').innerHTML = capsule.map(c =>
+    `<div class="capsule-item"><span class="emoji">${c[0]}</span>${c[1]}</div>`
+  ).join('');
 
   // Причины
   const reasons = [];
@@ -1520,17 +1520,13 @@ function calcResult() {
     const sc = SCENARIOS.find(s => s.id === state.scenario);
     reasons.push(`Идеальное место для встречи: <b>${sc.emoji} ${sc.name}</b>`);
   }
-  reasons.push(`Совместимость луков: <b>${70 + Math.floor(Math.random()*25)}%</b>`);
-  document.getElementById('resReasons').innerHTML = reasons.map((r, i) => `
-    <li><span class="bullet">${i+1}</span><span>${r}</span></li>
-  `).join('');
+  reasons.push(`Совместимость луков: <b>${matches[0]?.score || 75}%</b>`);
+  document.getElementById('resReasons').innerHTML = reasons.map((r, i) =>
+    `<li><span class="bullet">${i+1}</span><span>${r}</span></li>`
+  ).join('');
 
-  // Радар
   drawRadar();
-
-  // Dual chips
-  renderStyleChips('dualChips', 3);
-
+  renderStyleChips('dualChips', state.dualStyles, 3);
   goTo('result');
   sndSuccess();
 }
@@ -1542,36 +1538,27 @@ function drawRadar() {
   const W = canvas.width, H = canvas.height;
   const cx = W/2, cy = H/2;
   const R = Math.min(W, H) / 2 - 40;
-
   const axes = [
-    { label: 'Минимализм', key: 'minimal' },
-    { label: 'Яркость', key: 'y2k' },
-    { label: 'Винтаж', key: 'vintage' },
-    { label: 'Спорт', key: 'sport' },
-    { label: 'Гранж', key: 'grunge' },
-    { label: 'Романтика', key: 'romantic' },
+    { label: 'Минимализм', key: 'minimal' }, { label: 'Яркость', key: 'y2k' },
+    { label: 'Винтаж', key: 'vintage' }, { label: 'Спорт', key: 'sport' },
+    { label: 'Гранж', key: 'grunge' }, { label: 'Романтика', key: 'romantic' },
   ];
   const N = axes.length;
-
-  // Значения: считаем по стилям пользователя
   const values = axes.map(a => {
     if (state.styles.includes(a.key)) return 0.7 + Math.random() * 0.3;
-    // смежные стили
     const related = {
-      minimal: ['oldmoney', 'preppy'],
-      y2k: ['cyber', 'romantic'],
+      minimal: ['oldmoney', 'preppy', 'darkacademia'],
+      y2k: ['cyber', 'romantic', 'coquette'],
       vintage: ['boho', 'grunge'],
-      sport: ['gorpcore', 'street'],
-      grunge: ['cyber', 'street'],
-      romantic: ['boho', 'y2k'],
+      sport: ['gorpcore', 'street', 'blokecore'],
+      grunge: ['cyber', 'street', 'darkacademia'],
+      romantic: ['boho', 'y2k', 'coquette', 'balletcore'],
     };
     if (related[a.key].some(r => state.styles.includes(r))) return 0.3 + Math.random() * 0.3;
     return 0.1 + Math.random() * 0.2;
   });
 
   ctx.clearRect(0, 0, W, H);
-
-  // Сетка
   const cs = getComputedStyle(document.documentElement);
   const gridColor = cs.getPropertyValue('--border').trim() || '#e8e3dc';
   const textColor = cs.getPropertyValue('--text').trim() || '#1a1a1a';
@@ -1582,219 +1569,380 @@ function drawRadar() {
     for (let i = 0; i <= N; i++) {
       const angle = (Math.PI * 2 * i / N) - Math.PI/2;
       const r = R * level / 4;
-      const x = cx + r * Math.cos(angle);
-      const y = cy + r * Math.sin(angle);
+      const x = cx + r * Math.cos(angle), y = cy + r * Math.sin(angle);
       if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     }
-    ctx.strokeStyle = gridColor;
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    ctx.strokeStyle = gridColor; ctx.lineWidth = 1; ctx.stroke();
   }
 
-  // Оси
   for (let i = 0; i < N; i++) {
     const angle = (Math.PI * 2 * i / N) - Math.PI/2;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
+    ctx.beginPath(); ctx.moveTo(cx, cy);
     ctx.lineTo(cx + R * Math.cos(angle), cy + R * Math.sin(angle));
-    ctx.strokeStyle = gridColor;
-    ctx.stroke();
+    ctx.strokeStyle = gridColor; ctx.stroke();
   }
 
-  // Данные
   ctx.beginPath();
   for (let i = 0; i <= N; i++) {
     const idx = i % N;
     const angle = (Math.PI * 2 * idx / N) - Math.PI/2;
     const r = R * values[idx];
-    const x = cx + r * Math.cos(angle);
-    const y = cy + r * Math.sin(angle);
+    const x = cx + r * Math.cos(angle), y = cy + r * Math.sin(angle);
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   }
-  ctx.fillStyle = 'rgba(255, 123, 107, 0.3)';
-  ctx.fill();
-  ctx.strokeStyle = accentColor;
-  ctx.lineWidth = 2.5;
-  ctx.stroke();
+  ctx.fillStyle = 'rgba(255, 123, 107, 0.3)'; ctx.fill();
+  ctx.strokeStyle = accentColor; ctx.lineWidth = 2.5; ctx.stroke();
 
-  // Точки
   for (let i = 0; i < N; i++) {
     const angle = (Math.PI * 2 * i / N) - Math.PI/2;
     const r = R * values[i];
-    const x = cx + r * Math.cos(angle);
-    const y = cy + r * Math.sin(angle);
     ctx.beginPath();
-    ctx.arc(x, y, 4, 0, Math.PI * 2);
-    ctx.fillStyle = accentColor;
-    ctx.fill();
+    ctx.arc(cx + r * Math.cos(angle), cy + r * Math.sin(angle), 4, 0, Math.PI * 2);
+    ctx.fillStyle = accentColor; ctx.fill();
   }
 
-  // Подписи
-  ctx.fillStyle = textColor;
-  ctx.font = '12px Inter, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  ctx.fillStyle = textColor; ctx.font = '12px Inter, sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   for (let i = 0; i < N; i++) {
     const angle = (Math.PI * 2 * i / N) - Math.PI/2;
-    const x = cx + (R + 22) * Math.cos(angle);
-    const y = cy + (R + 22) * Math.sin(angle);
-    ctx.fillText(axes[i].label, x, y);
+    ctx.fillText(axes[i].label, cx + (R + 22) * Math.cos(angle), cy + (R + 22) * Math.sin(angle));
   }
 }
 
 /* ============ DUAL MODE ============ */
 function calcDual() {
-  if (state.dualStyles.length === 0) {
-    toast('Выбери стили друга');
-    return;
-  }
-  const my = state.styles[0];
-  const friend = state.dualStyles[0];
+  if (state.dualStyles.length === 0) { toast('Выбери стили друга'); return; }
+  const my = state.styles[0], friend = state.dualStyles[0];
   const anti = ANTI[my];
-
-  let pct;
-  let verdict;
+  let pct, verdict;
   if (friend === anti) {
     pct = 10 + Math.floor(Math.random() * 15);
-    verdict = `😬 Стилистический антагонист! На шопинге будете спорить у каждой витрины.`;
+    verdict = '😬 Стилистический антагонист! На шопинге будете спорить у каждой витрины.';
   } else if (friend === my) {
     pct = 95 + Math.floor(Math.random() * 5);
-    verdict = `🔥 Близнецы! Вы выглядите как пара из Pinterest.`;
+    verdict = '🔥 Близнецы! Вы выглядите как пара из Pinterest.';
   } else {
     pct = 50 + Math.floor(Math.random() * 35);
-    verdict = pct > 75 ? `✨ Отличная комбинация — вам будет интересно вместе.` : `🤝 Нормальный микс — разные, но совместимые.`;
+    verdict = pct > 75 ? '✨ Отличная комбинация — вам будет интересно вместе.' : '🤝 Нормальный микс — разные, но совместимые.';
   }
-
   const myStyle = STYLES.find(s => s.id === my);
   const frStyle = STYLES.find(s => s.id === friend);
-
   document.getElementById('dualResult').innerHTML = `
     <div class="dual-compare">
-      <div class="dual-side">
-        <div class="who">Ты</div>
-        <div class="style">${myStyle.emoji} ${myStyle.name}</div>
-      </div>
-      <div class="dual-side">
-        <div class="who">Друг</div>
-        <div class="style">${frStyle.emoji} ${frStyle.name}</div>
-      </div>
+      <div class="dual-side"><div class="who">Ты</div><div class="style">${myStyle.emoji} ${myStyle.name}</div></div>
+      <div class="dual-side"><div class="who">Друг</div><div class="style">${frStyle.emoji} ${frStyle.name}</div></div>
     </div>
     <div class="verdict">
       <div style="font-size:32px; font-weight:800; margin-bottom:6px;">${pct}%</div>
       <div>${verdict}</div>
-    </div>
-  `;
+    </div>`;
   sndSuccess();
 }
+
+/* ============ BATTLE MODE ============ */
+let battleUploadIdx = 0;
+function uploadBattle(idx) {
+  battleUploadIdx = idx;
+  const input = document.getElementById('battleInput');
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      state.battlePhotos[idx] = ev.target.result;
+      document.getElementById('battleSlot' + (idx + 1)).innerHTML = `<img src="${ev.target.result}" />`;
+      sndClick();
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
+
+async function runBattle() {
+  if (!state.battlePhotos[0] || !state.battlePhotos[1]) { toast('Загрузи оба фото'); return; }
+  if (!state.battleScenario) { toast('Выбери случай'); return; }
+
+  let winner, comment;
+  if (state.apiKey) {
+    try {
+      toast('🤖 ИИ судит битву...');
+      const result = await judgeBattleWithGemini(state.battlePhotos, state.battleScenario, state.apiKey);
+      winner = result.winner;
+      comment = result.comment;
+    } catch(e) {
+      console.error(e);
+      const r = simulateBattle();
+      winner = r.winner; comment = r.comment;
+    }
+  } else {
+    await new Promise(r => setTimeout(r, 1500));
+    const r = simulateBattle();
+    winner = r.winner; comment = r.comment;
+  }
+
+  renderBattleResult(winner, comment);
+  goTo('battle-result');
+  sndSuccess();
+}
+
+function simulateBattle() {
+  const winner = Math.random() > 0.5 ? 0 : 1;
+  const comments = BATTLE_COMMENTS[state.battleScenario] || BATTLE_COMMENTS.coffee;
+  const winComment = comments.win[Math.floor(Math.random() * comments.win.length)];
+  const loseComment = comments.lose[Math.floor(Math.random() * comments.lose.length)];
+  return { winner, comment: `🏆 Вариант ${winner + 1} побеждает!\n\n${winComment}\n\n💬 Про вариант ${winner === 0 ? 2 : 1}: ${loseComment}` };
+}
+
+async function judgeBattleWithGemini(photos, scenario, apiKey) {
+  const scenarioNames = { coffee: 'кофейня', study: 'учёба', party: 'вечеринка', date: 'свидание', walk: 'прогулка' };
+  const prompt = `Ты — модный судья. Два варианта одежды для случая "${scenarioNames[scenario] || 'прогулка'}".
+Ответь ТОЛЬКО валидным JSON без markdown:
+{"winner": 0 или 1, "comment": "смешной и точный модный комментарий на русском до 200 символов, объясняющий почему победитель круче"}`;
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      contents: [{
+        parts: [
+          { text: prompt },
+          { inline_data: { mime_type: 'image/jpeg', data: photos[0].split(',')[1] } },
+          { inline_data: { mime_type: 'image/jpeg', data: photos[1].split(',')[1] } }
+        ]
+      }]
+    })
+  });
+
+  if (!response.ok) throw new Error('API error');
+  const data = await response.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const cleaned = text.replace(/```json|```/g, '').trim();
+  const parsed = JSON.parse(cleaned);
+  return { winner: parsed.winner === 1 ? 1 : 0, comment: `🏆 Вариант ${(parsed.winner === 1 ? 1 : 0) + 1} побеждает!\n\n${parsed.comment}` };
+}
+
+function renderBattleResult(winner, comment) {
+  const grid = document.getElementById('battleResultGrid');
+  grid.innerHTML = '';
+  [0, 1].forEach(i => {
+    const slot = document.createElement('div');
+    slot.className = 'battle-slot ' + (i === winner ? 'winner' : 'loser');
+    slot.innerHTML = `<img src="${state.battlePhotos[i]}" />${i === winner ? '<div class="battle-badge">🏆 WIN</div>' : ''}`;
+    grid.appendChild(slot);
+  });
+  document.getElementById('battleComment').innerHTML = `
+    <div class="label">Вердикт ИИ</div>
+    <div>${comment.replace(/\n/g, '<br>')}</div>`;
+}
+
+function shareBattle() {
+  const text = `⚔️ Битва луков в LookMatch! Какой образ круче?`;
+  const url = encodeURIComponent(window.location.href);
+  if (tg) {
+    tg.openTelegramLink(`https://t.me/share/url?url=${url}&text=${encodeURIComponent(text)}`);
+  } else {
+    window.open(`https://t.me/share/url?url=${url}&text=${encodeURIComponent(text)}`, '_blank');
+  }
+  sndClick();
+}
+
+/* ============ COUPLES MODE ============ */
+renderStyleChips('couplesChips1', state.couples1, 1);
+renderStyleChips('couplesChips2', state.couples2, 1);
+
+function calcCouples() {
+  if (state.couples1.length === 0 || state.couples2.length === 0) {
+    toast('Выбери стили обоих'); return;
+  }
+  const s1 = state.couples1[0], s2 = state.couples2[0];
+  const key = `${s1}_${s2}`;
+  const key2 = `${s2}_${s1}`;
+  const outfit = COUPLES_OUTFITS[key] || COUPLES_OUTFITS[key2] || COUPLES_OUTFITS.default;
+
+  document.getElementById('couplesPreview').innerHTML = `
+    <div class="pair-emoji">${outfit.emoji}</div>
+    <div class="pair-title">${outfit.title}</div>
+    <div class="pair-desc">${outfit.desc}</div>`;
+
+  document.getElementById('couplesItems').innerHTML = outfit.items.map(item => `
+    <div class="couples-item">
+      <span class="emoji">${item[0]}</span>
+      <div class="name">${item[1]}</div>
+      <div class="who">${item[2]}</div>
+    </div>`).join('');
+
+  goTo('couples-result');
+  sndSuccess();
+}
+
+function downloadCouplesCard() {
+  const s1 = STYLES.find(s => s.id === state.couples1[0]);
+  const s2 = STYLES.find(s => s.id === state.couples2[0]);
+  const key = `${state.couples1[0]}_${state.couples2[0]}`;
+  const key2 = `${state.couples2[0]}_${state.couples1[0]}`;
+  const outfit = COUPLES_OUTFITS[key] || COUPLES_OUTFITS[key2] || COUPLES_OUTFITS.default;
+
+  const c = document.createElement('canvas');
+  c.width = 1080; c.height = 1920;
+  const ctx = c.getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 1080, 1920);
+  grad.addColorStop(0, '#ffa94d'); grad.addColorStop(1, '#ff7b6b');
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, 1080, 1920);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  ctx.font = 'bold 80px Inter, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('LOOKMATCH', 540, 200);
+  ctx.font = '48px Inter, sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.fillText('наш парный образ', 540, 300);
+
+  ctx.font = '160px sans-serif'; ctx.fillStyle = 'white';
+  ctx.fillText(outfit.emoji, 540, 600);
+
+  ctx.font = 'bold 90px Inter, sans-serif';
+  ctx.fillText(outfit.title, 540, 800);
+
+  ctx.font = '36px Inter, sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  const lines = outfit.desc.match(/.{1,50}(\s|$)/g) || [outfit.desc];
+  lines.forEach((line, i) => ctx.fillText(line.trim(), 540, 950 + i * 50));
+
+  ctx.font = 'bold 60px Inter, sans-serif'; ctx.fillStyle = 'white';
+  ctx.fillText(`${s1.emoji} ${s1.name}`, 540, 1350);
+  ctx.font = '40px Inter, sans-serif'; ctx.fillText('×', 540, 1430);
+  ctx.font = 'bold 60px Inter, sans-serif';
+  ctx.fillText(`${s2.emoji} ${s2.name}`, 540, 1520);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.font = 'bold 48px Inter, sans-serif';
+  ctx.fillText('@lookmatch', 540, 1780);
+
+  const link = document.createElement('a');
+  link.download = 'lookmatch-couples.png';
+  link.href = c.toDataURL('image/png');
+  link.click();
+  toast('Картинка сохранена!');
+  sndSuccess();
+}
+
+/* ============ MYSTERY MODE ============ */
+function rollMystery() {
+  const shuffled = [...MYSTERY_CRITERIA].sort(() => Math.random() - 0.5).slice(0, 4);
+  document.getElementById('mysteryCards').innerHTML = shuffled.map(c => {
+    const answers = [...c.answers].sort(() => Math.random() - 0.5);
+    const pick = answers[0];
+    return `<div class="mystery-card">
+      <div class="q">${c.q}</div>
+      <div class="answer"><span class="emoji">✨</span>${pick}</div>
+    </div>`;
+  }).join('');
+  sndSuccess();
+}
+rollMystery();
 
 /* ============ SHARE ============ */
 function shareTG() {
   const text = `Мой стиль в LookMatch: ${STYLES.find(s => s.id === state.styles[0])?.name}. А твой?`;
   const url = encodeURIComponent(window.location.href);
-  window.open(`https://t.me/share/url?url=${url}&text=${encodeURIComponent(text)}`, '_blank');
+  if (tg) {
+    tg.openTelegramLink(`https://t.me/share/url?url=${url}&text=${encodeURIComponent(text)}`);
+  } else {
+    window.open(`https://t.me/share/url?url=${url}&text=${encodeURIComponent(text)}`, '_blank');
+  }
   sndClick();
 }
 
 function copyLink() {
   navigator.clipboard.writeText(window.location.href).then(() => {
-    toast('Ссылка скопирована!');
-    sndSuccess();
+    toast('Ссылка скопирована!'); sndSuccess();
   });
 }
 
+/* ============ STORY MODAL ============ */
+function openStoryModal() { document.getElementById('storyModal').classList.add('show'); }
+function closeStoryModal() { document.getElementById('storyModal').classList.remove('show'); }
+function selectStoryTpl(tpl) {
+  state.storyTpl = tpl;
+  document.querySelectorAll('.story-tpl').forEach(t => t.classList.toggle('active', t.dataset.tpl === tpl));
+  sndClick();
+}
+
 function downloadStory() {
-  // Генерируем картинку для сторис
   const c = document.createElement('canvas');
   c.width = 1080; c.height = 1920;
   const ctx = c.getContext('2d');
+  const myStyle = STYLES.find(s => s.id === state.styles[0]);
 
-  // Фон-градиент
+  const templates = {
+    sunset: { bg: ['#ffa94d', '#ff7b6b'], text: '#fff', sub: 'rgba(255,255,255,0.8)' },
+    neon: { bg: ['#a020f0', '#00d4ff'], text: '#fff', sub: 'rgba(255,255,255,0.8)' },
+    minimal: { bg: ['#2a262c', '#1a171c'], text: '#fff', sub: 'rgba(255,255,255,0.7)' },
+    y2k: { bg: ['#ff2e9a', '#ffd6ec'], text: '#4a0e4e', sub: 'rgba(74,14,78,0.7)' },
+    forest: { bg: ['#4ade80', '#22c55e'], text: '#fff', sub: 'rgba(255,255,255,0.8)' },
+    ocean: { bg: ['#0ea5e9', '#6366f1'], text: '#fff', sub: 'rgba(255,255,255,0.8)' },
+  };
+  const t = templates[state.storyTpl];
+
   const grad = ctx.createLinearGradient(0, 0, 1080, 1920);
-  grad.addColorStop(0, '#ffa94d');
-  grad.addColorStop(1, '#ff7b6b');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 1080, 1920);
+  grad.addColorStop(0, t.bg[0]); grad.addColorStop(1, t.bg[1]);
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, 1080, 1920);
 
-  // Заголовок
-  ctx.fillStyle = 'rgba(255,255,255,0.95)';
-  ctx.font = 'bold 80px Inter, sans-serif';
-  ctx.textAlign = 'center';
+  ctx.fillStyle = t.text;
+  ctx.font = 'bold 80px Inter, sans-serif'; ctx.textAlign = 'center';
   ctx.fillText('LOOKMATCH', 540, 200);
-
-  ctx.font = '48px Inter, sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.font = '48px Inter, sans-serif'; ctx.fillStyle = t.sub;
   ctx.fillText('мой стиль', 540, 320);
 
-  // Стиль
-  const myStyle = STYLES.find(s => s.id === state.styles[0]);
-  ctx.fillStyle = 'white';
+  ctx.fillStyle = t.text;
   ctx.font = 'bold 140px Inter, sans-serif';
   ctx.fillText(myStyle ? myStyle.name : '—', 540, 560);
 
   // Радар-мини
-  ctx.save();
-  ctx.translate(540, 1100);
+  ctx.save(); ctx.translate(540, 1100);
   const R = 300;
   const axes = ['Минимализм', 'Яркость', 'Винтаж', 'Спорт', 'Гранж', 'Романтика'];
   const N = axes.length;
-  const values = axes.map((_, i) => 0.4 + Math.random() * 0.6);
+  const values = axes.map(() => 0.4 + Math.random() * 0.6);
 
-  // Сетка
-  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = t.sub; ctx.lineWidth = 2;
   for (let level = 1; level <= 4; level++) {
     ctx.beginPath();
     for (let i = 0; i <= N; i++) {
       const angle = (Math.PI * 2 * i / N) - Math.PI/2;
       const r = R * level / 4;
-      const x = r * Math.cos(angle);
-      const y = r * Math.sin(angle);
+      const x = r * Math.cos(angle), y = r * Math.sin(angle);
       if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     }
     ctx.stroke();
   }
 
-  // Данные
   ctx.beginPath();
   for (let i = 0; i <= N; i++) {
     const idx = i % N;
     const angle = (Math.PI * 2 * idx / N) - Math.PI/2;
     const r = R * values[idx];
-    const x = r * Math.cos(angle);
-    const y = r * Math.sin(angle);
+    const x = r * Math.cos(angle), y = r * Math.sin(angle);
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   }
-  ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.fill();
-  ctx.strokeStyle = 'white';
-  ctx.lineWidth = 4;
-  ctx.stroke();
+  ctx.fillStyle = t.sub; ctx.fill();
+  ctx.strokeStyle = t.text; ctx.lineWidth = 4; ctx.stroke();
 
-  // Подписи
-  ctx.fillStyle = 'white';
-  ctx.font = 'bold 28px Inter, sans-serif';
+  ctx.fillStyle = t.text; ctx.font = 'bold 28px Inter, sans-serif';
   for (let i = 0; i < N; i++) {
     const angle = (Math.PI * 2 * i / N) - Math.PI/2;
-    const x = (R + 60) * Math.cos(angle);
-    const y = (R + 60) * Math.sin(angle);
-    ctx.fillText(axes[i], x, y);
+    ctx.fillText(axes[i], (R + 60) * Math.cos(angle), (R + 60) * Math.sin(angle));
   }
   ctx.restore();
 
-  // Футер
-  ctx.fillStyle = 'rgba(255,255,255,0.8)';
-  ctx.font = '36px Inter, sans-serif';
+  ctx.fillStyle = t.sub; ctx.font = '36px Inter, sans-serif';
   ctx.fillText('а твой?', 540, 1700);
-  ctx.font = 'bold 48px Inter, sans-serif';
+  ctx.font = 'bold 48px Inter, sans-serif'; ctx.fillStyle = t.text;
   ctx.fillText('@lookmatch', 540, 1780);
 
-  // Скачиваем
   const link = document.createElement('a');
-  link.download = 'lookmatch-story.png';
+  link.download = `lookmatch-${state.storyTpl}.png`;
   link.href = c.toDataURL('image/png');
   link.click();
   toast('Картинка сохранена!');
   sndSuccess();
+  closeStoryModal();
 }
 
 /* ============ TOAST ============ */
@@ -1808,6 +1956,9 @@ function toast(msg) {
 /* ============ INIT ============ */
 setTheme('light');
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
