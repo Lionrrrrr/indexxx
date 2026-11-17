@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Кто на твою волну?</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;900&family=Onest:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#e4e2ec;--ink:#15131a;--hot:#e0245e;--blue:#2f4bff;--card:#f6f5fa}
+@media (prefers-color-scheme:dark){:root{--paper:#1b1924;--ink:#f1eff7;--hot:#ff4d86;--blue:#7d8dff;--card:#26232f}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:400 17px/1.5 Onest,system-ui,sans-serif;padding:24px 16px 60px}
+main{max-width:760px;margin:0 auto}
+h1{font:900 clamp(34px,8vw,64px)/1 Unbounded,sans-serif;margin:8px 0 12px;letter-spacing:-.02em}
+h2{font:700 20px/1.2 Unbounded,sans-serif;margin:0 0 14px}
+p{margin:0 0 12px}
+.sub{max-width:52ch}
+.box{background:var(--card);border:3px solid var(--ink);box-shadow:6px 6px 0 var(--ink);padding:20px;margin:22px 0}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+button,.chip{font:600 16px Onest,sans-serif;color:var(--ink);background:var(--card);border:3px solid var(--ink);padding:9px 16px;cursor:pointer}
+button:focus-visible,input:focus-visible+label{outline:3px solid var(--blue);outline-offset:2px}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.go{background:var(--hot);color:#fff;border-color:var(--ink);font-weight:700;box-shadow:4px 4px 0 var(--ink)}
+.go:disabled{opacity:.5;cursor:not-allowed}
+#drop{display:block;border:3px dashed var(--ink);padding:26px;text-align:center;cursor:pointer}
+#drop img{max-height:280px;max-width:100%;border:3px solid var(--ink)}
+#file{position:absolute;opacity:0;width:1px;height:1px}
+.note{font-size:14px;opacity:.75}
+#status{font-weight:600;min-height:1.5em}
+.bar{display:grid;grid-template-columns:150px 1fr 52px;gap:10px;align-items:center;margin:9px 0}
+.bar .t{height:22px;border:2px solid var(--ink);background:var(--paper)}
+.bar .t i{display:block;height:100%;background:var(--hot);width:0;transition:width .6s}
+.bar:first-child .t i{background:var(--blue)}
+.bar b{text-align:right;font-family:Unbounded,sans-serif;font-size:15px}
+.tag{display:inline-block;background:var(--hot);color:#fff;font:700 13px Unbounded,sans-serif;padding:3px 9px;transform:rotate(-2deg);margin-right:6px}
+.tips{border-top:2px solid var(--ink);padding-top:12px;margin-top:12px}
+.hide{display:none}
+input[type=text]{font:400 16px Onest,sans-serif;color:var(--ink);background:var(--card);border:3px solid var(--ink);padding:9px 12px;min-width:0;flex:1 1 180px}
+input[type=text]:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.sec{margin:26px 0 10px}
+.sec span{font:400 14px Onest,sans-serif;opacity:.7;margin-left:6px}
+.chip .x{margin-left:8px;opacity:.7}
+@media (max-width:520px){.bar{grid-template-columns:1fr 46px}.bar .t{grid-column:1/3;order:3}}
+@media (prefers-reduced-motion:reduce){.bar .t i{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>Кто на твою волну?</h1>
+<p class="sub">Загрузи фото — нейросеть угадает твой стиль и покажет, с кем знакомиться проще всего и что носить, чтобы заметили. Фото не уходит на сервер, всё считается в твоём браузере.</p>
+
+<section class="box">
+  <h2>Кого ищешь?</h2>
+  <div class="row" id="who">
+    <button class="chip" aria-pressed="true" data-g="f">Девушку</button>
+    <button class="chip" aria-pressed="false" data-g="m">Парня</button>
+  </div>
+  <input id="file" type="file" accept="image/*">
+  <label id="drop" for="file"><span id="dropText">Нажми и выбери своё фото<br><span class="note">лучше в полный рост или по пояс, при нормальном свете</span></span></label>
+  <div class="row" style="margin-top:14px"><button class="go" id="run" disabled>Определить стиль</button></div>
+  <p id="status" role="status"></p>
+  <h2 class="sec">Или выбери стиль сам<span>до 3 штук, можно без фото</span></h2>
+  <div class="row" id="manual"></div>
+  <div class="row"><button class="go" id="runManual" disabled>Посчитать по выбранным</button></div>
+  <h2 class="sec">Увлечения<span>они повышают шанс с теми, кто этим живёт</span></h2>
+  <div class="row" id="hobbies"></div>
+  <div class="row"><input type="text" id="hobIn" maxlength="30" placeholder="Своё увлечение, например: стендап" aria-label="Своё увлечение"><button id="hobAdd">Добавить</button></div>
+</section>
+
+<section class="box hide" id="res">
+  <h2>Твой стиль</h2>
+  <div id="mine"></div>
+  <div class="row" style="margin-top:12px"><button id="fix">Это не мой стиль, поправить</button></div>
+  <h2 style="margin-top:22px">Шанс познакомиться</h2>
+  <div id="bars"></div>
+  <div id="tips"></div>
+  <p class="note" style="margin-top:16px">Это игра, а не наука. Нейросеть оценивает только одежду и образ на фото, а не тебя. Реальные знакомства зависят от места, настроения и смелости сказать «привет».</p>
+</section>
+</main>
+
+<script type="module">
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+env.allowLocalModels = false;
+
+// traits: мрачность, бунт, спорт, формальность, творчество, мягкость
+const S = {
+  alt:    {n:['альтушка','альт-парень'], me:'альт / неформал', t:[.8,.7,.1,.1,.8,.2], clip:'a person with alternative style, dyed hair, piercings, dark layered clothes', place:'концерты, тату-студии, рок-бары, барахолки', wear:'многослойность, кольца и цепи, тяжёлые ботинки, один яркий акцент'},
+  goth:   {n:['готка','гот'], me:'гот', t:[1,.5,0,.2,.7,.2], clip:'a goth person in all black clothes with dark makeup', place:'готик-вечеринки, кладбищенские парки, кино-клубы', wear:'чёрное в разных фактурах, кружево или кожа, серебро'},
+  punk:   {n:['панкушка','панк'], me:'панк', t:[.6,1,.2,0,.6,0], clip:'a punk person with a leather jacket, band patches and spiky hair', place:'панк-гиги, сквоты, дворовые концерты', wear:'косуха, клетка, нашивки, берцы'},
+  sport:  {n:['спортивная девушка','спортсмен'], me:'спортивный', t:[0,.2,1,.2,.1,.4], clip:'a person in sportswear, athletic clothes and sneakers', place:'зал, пробежки, секции, турниры', wear:'чистые кроссовки, худи прямого кроя, лёгкая спортивная куртка'},
+  classic:{n:['девушка в классике','парень в классике'], me:'классика / офис', t:[0,0,.2,1,.2,.4], clip:'a person in smart elegant formal clothes, shirt and coat', place:'кафе, выставки, нетворкинг, театры', wear:'посадка по фигуре, пальто, аккуратная обувь, один нестандартный элемент'},
+  street: {n:['уличная девушка','стритвир-парень'], me:'стритвир', t:[.2,.5,.5,.1,.6,.3], clip:'a person in streetwear, oversized hoodie, cap and sneakers', place:'уличные маркеты, баскетбольные площадки, ночные тусовки', wear:'оверсайз, редкие кроссовки, кепка, сумка через плечо'},
+  geek:   {n:['гик-девушка','гик'], me:'гик / аниме', t:[.2,.1,0,.2,.7,.6], clip:'a nerdy person with glasses and a graphic t-shirt', place:'аниме-фесты, настолки, игровые клубы, гик-кафе', wear:'футболка с принтом, очки, косплей-детали, рюкзак со значками'},
+  boho:   {n:['бохо-девушка','бохо-парень'], me:'бохо / хиппи', t:[.1,.3,.1,.1,1,.7], clip:'a bohemian hippie person with flowy clothes, natural fabrics and handmade jewelry', place:'фестивали, ярмарки, йога, арт-пространства', wear:'лён и хлопок, украшения ручной работы, тёплые земляные цвета'},
+  preppy: {n:['девушка-преппи','парень-преппи'], me:'преппи', t:[0,0,.4,.8,.2,.5], clip:'a preppy person in a polo, sweater and neat casual clothes', place:'универ, клубы по интересам, лекции, кофейни', wear:'поло или свитер, чиносы, лоферы, чистые цвета'},
+  skater: {n:['скейтерша','скейтер'], me:'скейтер', t:[.3,.7,.7,0,.5,.2], clip:'a skater with baggy pants, vans shoes and a skateboard', place:'скейт-парки, видеопокатушки, уличные кафе', wear:'широкие штаны, ваны, мешковатая футболка, бини'},
+  tomboy: {n:['томбой','парень в андрогинном стиле'], me:'томбой', t:[.2,.5,.6,.2,.4,.3], clip:'a tomboy in baggy jeans, a loose t-shirt and sneakers, boyish masculine style', place:'скейт-споты, спортплощадки, настолки, поездки на великах', wear:'мешковатые джинсы, мужские рубашки и майки, кеды, кепка'},
+  femboy: {n:['девушка-андрогин','фембой'], me:'фембой', t:[.1,.4,0,.2,.8,1], clip:'a femboy, a soft feminine style on a masculine person, skirt, pastel colors, cute accessories', place:'аниме-фесты, арт-тусовки, кофейни, квир-вечеринки', wear:'пастель, юбка или шорты, чокер, кроп-топ, милые аксессуары'},
+  grunge: {n:['грязнулька (гранж-девушка)','гранж-парень'], me:'грязнулька / гранж', t:[.7,.8,.2,0,.6,.1], clip:'a grunge person with messy hair, ripped jeans, worn flannel shirt and smudged eyeliner, disheveled look', place:'гаражные концерты, секонды, ночные кафе, подвальные бары', wear:'потёртые джинсы, фланелька, растянутый свитер, небрежный макияж'},
+  eboy:   {n:['e-girl','e-boy'], me:'e-girl / e-boy', t:[.7,.6,.1,.1,.8,.4], clip:'an e-girl or e-boy with chains, striped shirt, colored hair and graphic eyeliner', place:'стримы, игровые вечеринки, аниме-фесты, ночные дискорд-встречи', wear:'полосатый лонгслив, цепи, яркие пряди, графичные стрелки'},
+  emo:    {n:['эмо-девушка','эмо-парень'], me:'эмо / скин', t:[.9,.6,0,.1,.7,.4], clip:'an emo or scene person with a side fringe, black band t-shirt, skinny jeans and studded belt', place:'рок-клубы, концерты, тусовки у метро, рисовальные кружки', wear:'чёлка набок, чёрные футболки с группами, узкие джинсы, браслеты'},
+  darkacad:{n:['девушка в дарк-академии','парень в дарк-академии'], me:'дарк-академия', t:[.6,.1,0,.7,.7,.4], clip:'a dark academia person in a tweed blazer, turtleneck, plaid skirt or trousers and brown tones', place:'библиотеки, старые кофейни, музеи, книжные клубы', wear:'твидовый пиджак, водолазка, клетка, коричневые и тёмно-зелёные тона'},
+  cottage:{n:['коттеджкор-девушка','коттеджкор-парень'], me:'коттеджкор', t:[0,0,0,.2,.8,1], clip:'a cottagecore person in a floral prairie dress, linen, knitted cardigan and soft countryside style', place:'фермерские рынки, пикники, садоводство, маркеты хендмейда', wear:'платья с цветами, льняные рубашки, вязаные кардиганы, плетёные сумки'},
+  y2k:    {n:['y2k-девушка','y2k-парень'], me:'Y2K', t:[.1,.4,.1,.1,.8,.6], clip:'a person in Y2K style with low rise jeans, butterfly clips, baby tee and shiny accessories', place:'ночные клубы, торговые центры, поп-вечеринки, караоке', wear:'низкая посадка, маленькие топы, заколки-бабочки, блестящие акценты'},
+  coquette:{n:['кокетка','парень в стиле коккет'], me:'коккет / бантики', t:[0,0,0,.4,.7,1], clip:'a coquette style person with bows, ribbons, lace, pink pastel colors and ballet flats', place:'кофейни, выставки, балетные студии, фотопрогулки', wear:'банты, кружево, пудровые цвета, балетки, жемчуг'},
+  oldmoney:{n:['девушка в old money','парень в old money'], me:'old money / тихая роскошь', t:[0,0,.3,1,.1,.5], clip:'a person in quiet luxury old money style, cashmere sweater, beige trench coat and neutral tones', place:'выставки, яхт-клубы, винные бары, гольф и теннис', wear:'кашемир, бежевый и белый, тренч, минимум логотипов, часы'},
+  gorp:   {n:['горпкор-девушка','горпкор-парень'], me:'горпкор / туристический', t:[.1,.2,.8,.1,.3,.4], clip:'a person in gorpcore outdoor clothing, technical jacket, hiking boots and a backpack', place:'походы, скалодромы, палаточные выезды, велопоездки', wear:'мембранная куртка, треккинговые ботинки, флис, функциональный рюкзак'},
+  siren:  {n:['office siren','парень в строгом стиле'], me:'office siren', t:[.5,.3,0,.7,.4,.3], clip:'an office siren in a fitted pencil skirt, blazer, glasses and sleek dark hair', place:'бизнес-встречи, ужины в ресторанах, коктейльные бары, конференции', wear:'пиджак, юбка-карандаш, очки, строгая причёска, тёмные тона'}
+};
+const keys = Object.keys(S);
+const cmp = (a,b)=>{const d=Math.hypot(...S[a].t.map((v,i)=>v-S[b].t[i]));return Math.round(14+80*Math.pow(Math.max(0,1-d/2.45),1.6));};
+
+let gender='f', file=null, manual=null, clf=null;
+const $=id=>document.getElementById(id), st=$('status');
+
+document.querySelectorAll('#who .chip').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#who .chip').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  gender=b.dataset.g; if(window._last) show(window._last,true);
+});
+const H={
+ 'музыка и концерты':['alt','goth','punk','emo','eboy','grunge'],
+ 'игры':['geek','eboy','femboy'],
+ 'аниме и косплей':['geek','femboy','eboy','y2k'],
+ 'спорт и зал':['sport','gorp','tomboy'],
+ 'скейт и BMX':['skater','street','tomboy','grunge'],
+ 'книги':['darkacad','geek','cottage'],
+ 'рисование и арт':['boho','alt','femboy','coquette'],
+ 'фото и видео':['boho','y2k','coquette','darkacad'],
+ 'походы':['gorp','boho','cottage'],
+ 'танцы':['y2k','street','siren'],
+ 'мода и шопинг':['y2k','oldmoney','siren','coquette'],
+ 'кино':['darkacad','alt','goth'],
+ 'кофе и готовка':['cottage','boho','preppy'],
+ 'тату и пирсинг':['alt','punk','goth','grunge'],
+ 'путешествия':['boho','gorp','oldmoney'],
+ 'бизнес и карьера':['classic','oldmoney','siren','preppy']
+};
+const hobs=new Set(), custom=[], picked=new Set();
+const redo=()=>{if(window._last)show(window._last,true);};
+
+$('manual').innerHTML = keys.map(k=>`<button class="chip" aria-pressed="false" data-k="${k}">${S[k].me}</button>`).join('');
+$('manual').onclick=e=>{const k=e.target.dataset.k; if(!k)return;
+  if(picked.has(k))picked.delete(k); else if(picked.size<3)picked.add(k); else return;
+  e.target.setAttribute('aria-pressed',picked.has(k));
+  $('runManual').disabled=!picked.size;};
+$('runManual').onclick=()=>{const p={}; picked.forEach(k=>p[k]=1/picked.size); show(p);};
+$('fix').onclick=()=>$('manual').scrollIntoView({behavior:'smooth',block:'center'});
+
+const drawHobbies=()=>{
+  $('hobbies').innerHTML=Object.keys(H).map(n=>`<button class="chip" aria-pressed="${hobs.has(n)}" data-h="${n}">${n}</button>`).join('')+
+    custom.map(n=>`<button class="chip" aria-pressed="${hobs.has(n)}" data-h="${n}" data-c="1">${n.replace(/</g,'&lt;')}<span class="x" data-del="${n.replace(/"/g,'')}" title="Убрать">×</span></button>`).join('');
+};
+$('hobbies').onclick=e=>{
+  const del=e.target.dataset.del;
+  if(del){const i=custom.indexOf(del); if(i>-1)custom.splice(i,1); hobs.delete(del); drawHobbies(); redo(); return;}
+  const b=e.target.closest('[data-h]'); if(!b)return;
+  const n=b.dataset.h; hobs.has(n)?hobs.delete(n):hobs.add(n); drawHobbies(); redo();};
+const addHob=()=>{const n=$('hobIn').value.trim().slice(0,30); if(!n)return;
+  if(!H[n]&&!custom.includes(n))custom.push(n); hobs.add(n); $('hobIn').value=''; drawHobbies(); redo();};
+$('hobAdd').onclick=addHob;
+$('hobIn').onkeydown=e=>{if(e.key==='Enter')addHob();};
+drawHobbies();
+
+$('file').onchange=e=>{
+  file=e.target.files[0]; if(!file)return;
+  $('dropText').innerHTML=`<img alt="Твоё фото" src="${URL.createObjectURL(file)}">`;
+  $('run').disabled=false; st.textContent='';
+};
+
+$('run').onclick=async()=>{
+  $('run').disabled=true;
+  try{
+    if(!clf){
+      st.textContent='Загружаю нейросеть (один раз, около 100 МБ)…';
+      clf = await pipeline('zero-shot-image-classification','Xenova/clip-vit-base-patch32',{
+        progress_callback:p=>{if(p.status==='progress')st.textContent=`Загрузка модели: ${Math.round(p.progress)}%`;}
+      });
+    }
+    st.textContent='Смотрю на твой образ…';
+    const url=URL.createObjectURL(file);
+    const out = await clf(url, keys.map(k=>S[k].clip), {hypothesis_template:'a photo of {}.'});
+    const probs={}; out.forEach(o=>{probs[keys[keys.findIndex(k=>S[k].clip===o.label)]]=o.score;});
+    st.textContent='';
+    show(probs);
+  }catch(err){
+    console.error(err);
+    st.textContent='Не получилось загрузить нейросеть. Проверь интернет или выбери стиль вручную ниже.';
+  }
+  $('run').disabled=false;
+};
+
+function show(probs,quiet){
+  window._last=probs; const gi=gender==='f'?0:1;
+  const mine=Object.entries(probs).sort((a,b)=>b[1]-a[1]).slice(0,3).filter(([,p],i)=>i===0||p>.12);
+  $('mine').innerHTML=mine.map(([k,p])=>`<span class="tag">${S[k].me}${mine.length>1||p<1?' '+Math.round(p*100)+'%':''}</span>`).join('');
+  const tot=mine.reduce((s,[,p])=>s+p,0);
+  const shared=k=>[...hobs].filter(n=>H[n]&&H[n].includes(k));
+  const scores=keys.map(k=>{
+    const base=mine.reduce((s,[m,p])=>s+p*cmp(m,k),0)/tot;
+    return [k,Math.min(97,Math.round(base+shared(k).length*7))];
+  }).sort((a,b)=>b[1]-a[1]);
+  $('bars').innerHTML=scores.slice(0,6).map(([k,v])=>`<div class="bar"><span>${S[k].n[gi]}</span><div class="t"><i style="width:${v}%"></i></div><b>${v}%</b></div>`).join('');
+  const talk=[...hobs].filter(n=>!H[n]);
+  $('tips').innerHTML=scores.slice(0,3).map(([k])=>{const sh=shared(k);
+    return `<div class="tips"><p><b>${S[k].n[gi]}</b></p><p>Где пересечься: ${S[k].place}.</p><p>Что надеть, чтобы заметили: ${S[k].wear}.</p>${sh.length?`<p>Общие увлечения: ${sh.join(', ')}.</p>`:''}</div>`;}).join('')+
+    (talk.length?`<div class="tips"><p>Свои увлечения для первой фразы: ${talk.map(n=>n.replace(/</g,'&lt;')).join(', ')}. Начни с вопроса про это, так диалог завяжется легче.</p></div>`:'');
+  $('res').classList.remove('hide');
+  if(!quiet)$('res').scrollIntoView({behavior:'smooth',block:'start'});
+}
+</script>
+</body>
+</html>
